@@ -1,0 +1,77 @@
+# Sketchora — Sketch & Paint
+
+Flutter drawing app for Android and iOS. Phase 1 is an offline testing preview
+with the approved S logo, warm ivory surfaces, violet controls and coral accents.
+
+## Phase 1 features
+
+- Home, recent sketch, gallery, portrait/square/landscape canvases.
+- Pen, pencil, translucent marker, layer-aware eraser, size and opacity.
+- Colour swatches and HSV mixer; supported stylus pressure.
+- Single-pointer drawing, two-pointer pan/zoom, hand tool, fit-to-view.
+- Up to 12 layers: visibility, ordering, opacity and undoable deletion.
+- 60-step session undo/redo, including layer changes and clear.
+- Local autosave, lifecycle save, queued writes and previous-save recovery.
+- Editable reopen, rename, duplicate and confirmed deletion.
+- Full-resolution white/transparent PNG through the system share/save sheet.
+- Responsive phone/tablet UI and Android/iOS launcher icons.
+
+No accounts, ads, analytics or AI services. Data is stored in the app support
+directory; iOS OS-level backup policies may apply. Uninstalling can remove work.
+Export important sketches first. Undo history is session-only.
+
+## Run and verify
+
+Developed with Flutter 3.47.4 / Dart 3.13.3. Android SDK 36 and JDK 17+ required.
+
+```sh
+flutter pub get
+flutter run
+flutter analyze
+flutter test
+flutter build apk --debug
+```
+
+App ID: `com.srikanth.sketchora`. Version: `0.1.0+1`.
+Current project minimums: Android 7.0 (API 24), iOS 15.0.
+Machine SDK paths live in ignored `android/local.properties`.
+Use `scripts/verify.ps1` for Windows checks and APK packaging. It also directs
+Java's temporary sockets into the workspace to avoid the packaged Windows shell
+AF_UNIX path issue, as described by [OpenJDK](https://mail.openjdk.org/pipermail/nio-dev/2023-March/013297.html).
+
+## iOS / Mac handoff
+
+On a Mac with Xcode and command-line tools installed:
+
+```sh
+flutter pub get
+flutter build ios --simulator --debug
+flutter devices
+flutter run -d <simulator-or-device-id>
+```
+
+For a device, open `ios/Runner.xcworkspace`, set Runner > Signing & Capabilities
+to your Apple team, and select the device. For TestFlight, configure distribution
+signing, run `flutter build ipa`, and upload with Xcode/Transporter.
+iOS build, signing, Apple Pencil and iPad share sheets need Mac/device validation.
+Windows checks do not establish iOS readiness. Distribution keys are not included.
+Android release currently uses debug signing for internal tests; configure your
+own signing before store submission.
+
+## Testing / next phases
+
+See [testing checklist](docs/PHASES_AND_TESTING.md) and
+[verification results](docs/VERIFICATION.md). Screenshot tests use an editable
+botanical vector fixture; the installed app starts with an empty gallery.
+
+Phase 2: import, fill, selection, transforms, canvas rotation, eyedropper,
+textured brushes, project backup/import and device performance tuning.
+Phase 3: optional AI refinement/colouring with original-preserving result layers.
+
+## Assets
+
+Approved logo and icon: `assets/branding/`. Generation prompts are stored beside
+them. DM Serif Display and DM Sans are bundled for offline typography under the
+SIL Open Font License (`assets/fonts/OFL.txt`, `assets/fonts/DMSans-OFL.txt`),
+sourced from Google Fonts.
+Regenerate launcher icons with `dart run flutter_launcher_icons`.

@@ -1,0 +1,16 @@
+.gradle/
+.kotlin/
+**/build/
+local.properties
+.idea/
+*.iml
+.tools/
+output/
+.dart_tool/
+.flutter-plugins-dependencies
+.packages
+coverage/
+dist/
+*.apk
+*.aab
+*.log

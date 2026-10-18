@@ -1,0 +1,7 @@
+* text=auto eol=lf
+*.bat text eol=crlf
+*.png binary
+*.ttf binary
+*.jar binary
+# Keep third-party license text verbatim.
+assets/fonts/*OFL.txt -whitespace

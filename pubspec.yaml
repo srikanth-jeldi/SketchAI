@@ -1,0 +1,40 @@
+name: sketchora
+description: "Sketchora — a quiet space for bold ideas. Offline sketching and painting."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  path_provider: ^2.1.5
+  share_plus: ^13.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: DMSans
+      fonts:
+        - asset: assets/fonts/DMSans-Variable.ttf
+    - family: DMSerif
+      fonts:
+        - asset: assets/fonts/DMSerifDisplay-Regular.ttf
+  assets:
+    - assets/branding/sketchora-icon-v1.png
+    - assets/branding/sketchora-full-logo-v1.png
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/branding/sketchora-icon-v1.png
+  remove_alpha_ios: true
+  adaptive_icon_background: '#19051F'
+  adaptive_icon_foreground: assets/branding/sketchora-icon-v1.png
