@@ -11,6 +11,51 @@ import 'package:sketchora/drawing/renderer.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   testWidgets(
+    'simple adult masters offer broad areas, stable saves and a preview',
+    (tester) async {
+      await tester.runAsync(() async {
+        expect(kidsEntries.length, 30);
+        expect(kidsEntries.where((e) => e.difficulty == 'Easy'), isNotEmpty);
+        expect(adultEntries.where((e) => e.difficulty == 'Easy').length, 3);
+        expect(adultEntries.where((e) => e.difficulty == 'Medium').length, 3);
+        expect(adultEntries.where((e) => e.difficulty == 'Detailed').length, 6);
+        final recorder = ui.PictureRecorder();
+        final canvas = ui.Canvas(recorder)
+          ..drawColor(const Color(0xFFFFFFFF), ui.BlendMode.src);
+        for (final e in simpleAdultEntries) {
+          final art = ArtCatalog.design(e.id);
+          expect(ArtCatalog.entry(e.id)?.id, e.id);
+          expect(art.regions.length, lessThan(25));
+          final editor = DrawingEditor(SketchDocument.create(artworkId: e.id));
+          editor.fillRegion(art.regions.last.id, 0xFF8050EF);
+          expect(
+            SketchDocument.fromJson(editor.document.toJson()).regionColors,
+            editor.document.regionColors,
+          );
+          editor.dispose();
+          canvas.save();
+          canvas.translate(
+            (e.variation % 3) * 500.0,
+            (e.variation ~/ 3) * 500.0,
+          );
+          canvas.scale(.5);
+          paintArt(canvas, art, sample: true);
+          canvas.restore();
+        }
+        final picture = recorder.endRecording();
+        final image = await picture.toImage(1500, 1000);
+        final png = (await image.toByteData(format: ui.ImageByteFormat.png))!
+            .buffer
+            .asUint8List();
+        await Directory('output/previews').create(recursive: true);
+        await File('output/previews/simple-adult-designs.png')
+            .writeAsBytes(png);
+        image.dispose();
+        picture.dispose();
+      });
+    },
+  );
+  testWidgets(
     'botanical fills cover bright artwork pixels without white stripe gaps',
     (tester) async {
       await tester.runAsync(() async {

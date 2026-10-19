@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 part 'premium_art.dart';
+part 'simple_adult_art.dart';
 
 const artCategories = [
   'Flowers',
@@ -39,18 +40,34 @@ class ArtEntry {
   final int family, variation;
   const ArtEntry(this.family, this.variation);
   bool get premium => family == 10;
-  String get id => premium ? 'premium_$variation' : 'art_${family}_$variation';
-  String get category =>
-      premium ? premiumCategories[variation] : artCategories[family];
-  String get title => premium
+  bool get adultSimple => family == 11;
+  String get id => adultSimple
+      ? 'adult_$variation'
+      : premium
+      ? 'premium_$variation'
+      : 'art_${family}_$variation';
+  String get category => adultSimple
+      ? (variation % 3 == 0
+            ? 'Botanical'
+            : variation % 3 == 1
+            ? 'Landscapes'
+            : 'Mandalas')
+      : premium
+      ? premiumCategories[variation]
+      : artCategories[family];
+  String get title => adultSimple
+      ? simpleAdultTitles[variation]
+      : premium
       ? premiumTitles[variation]
       : '${artNames[family]} ${variation + 1}';
   String get difficulty => premium
       ? 'Detailed'
-      : variation % 3 == 0
-      ? 'Relaxed'
-      : variation % 3 == 1
-      ? 'Playful'
+      : adultSimple
+      ? (variation < 3 ? 'Easy' : 'Medium')
+      : ArtCatalog.design(id).regions.length <= 45
+      ? 'Easy'
+      : ArtCatalog.design(id).regions.length <= 90
+      ? 'Medium'
       : 'Detailed';
 }
 
@@ -102,6 +119,9 @@ class ArtCatalog {
   );
   static final _cache = <String, ArtDesign>{};
   static ArtEntry? entry(String? id) {
+    for (final art in simpleAdultEntries) {
+      if (art.id == id) return art;
+    }
     for (final art in premiumEntries) {
       if (art.id == id) return art;
     }
@@ -122,7 +142,9 @@ class ArtCatalog {
     }
     final metadata = entry(id);
     if (metadata == null) throw const FormatException('Unknown artwork');
-    final result = _ArtBuilder(metadata).build();
+    final result = metadata.adultSimple
+        ? buildSimpleAdult(metadata)
+        : _ArtBuilder(metadata).build();
     _cache[id] = result;
     if (_cache.length > 24) _cache.remove(_cache.keys.first);
     return result;
@@ -742,7 +764,7 @@ void paintArt(
   final ink = Paint()
     ..color = const Color(0xFF292233)
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 2.8
+    ..strokeWidth = art.entry.family < 10 ? 5 : 2.8
     ..strokeCap = StrokeCap.round
     ..strokeJoin = StrokeJoin.round;
   for (final region in art.regions) {

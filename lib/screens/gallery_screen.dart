@@ -269,7 +269,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                                       context: context,
                                       applicationName: 'Sketchora',
                                       applicationVersion:
-                                          '0.3.1 · Premium colouring',
+                                          '0.4.0 · Kids & Adults',
                                       applicationIcon: const BrandMark(
                                         size: 56,
                                       ),
@@ -320,7 +320,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                                     onPressed: _colourDesign,
                                     icon: const Icon(Icons.palette_outlined),
                                     label: const Text(
-                                      'Explore 6 detailed colouring artworks',
+                                      'Explore colouring · Kids & Adults',
                                     ),
                                     style: OutlinedButton.styleFrom(
                                       minimumSize: const Size(48, 52),

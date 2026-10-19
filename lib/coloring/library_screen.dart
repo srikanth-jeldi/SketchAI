@@ -14,7 +14,9 @@ class ArtLibraryScreen extends StatefulWidget {
 }
 
 class _ArtLibraryState extends State<ArtLibraryScreen> {
-  int? _category;
+  String? _category;
+  bool _kids = true;
+  String _difficulty = 'Easy';
   String _query = '';
   int _visible = 30;
   bool _opening = false;
@@ -105,10 +107,13 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final entries = premiumEntries
+    final collection = _kids ? kidsEntries : adultEntries;
+    final categories = collection.map((e) => e.category).toSet().toList();
+    final entries = collection
         .where(
           (entry) =>
-              (_category == null || entry.variation == _category) &&
+              entry.difficulty == _difficulty &&
+              (_category == null || entry.category == _category) &&
               '${entry.title} ${entry.category}'.toLowerCase().contains(
                 _query.toLowerCase(),
               ),
@@ -129,15 +134,55 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '6 detailed artworks · colour your own way',
+                  Text(
+                    _kids
+                        ? 'Big shapes, happy colours. Start with something easy.'
+                        : 'A little calm. Beautiful designs at your own pace.',
                     style: TextStyle(color: muted, fontSize: 12),
                   ),
                   const SizedBox(height: 16),
+                  SegmentedButton<bool>(
+                    segments: const [
+                      ButtonSegment(
+                        value: true,
+                        label: Text('Kids'),
+                        icon: Icon(Icons.child_care),
+                      ),
+                      ButtonSegment(
+                        value: false,
+                        label: Text('Adults'),
+                        icon: Icon(Icons.spa_outlined),
+                      ),
+                    ],
+                    selected: {_kids},
+                    onSelectionChanged: (value) => setState(() {
+                      _kids = value.first;
+                      _category = null;
+                      _difficulty = 'Easy';
+                      _visible = 30;
+                    }),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      for (final level in ['Easy', 'Medium', 'Detailed'])
+                        ChoiceChip(
+                          label: Text(level),
+                          selected: _difficulty == level,
+                          onSelected: (_) => setState(() {
+                            _difficulty = level;
+                            _category = null;
+                            _visible = 30;
+                          }),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
                   TextField(
                     decoration: const InputDecoration(
                       prefixIcon: Icon(Icons.search_rounded),
-                      hintText: 'Botanical, fantasy, landscapes…',
+                      hintText: 'Find a favourite design…',
                     ),
                     onChanged: (value) => setState(() {
                       _query = value;
@@ -161,14 +206,14 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
                             }),
                           ),
                         ),
-                        for (var i = 0; i < premiumCategories.length; i++)
+                        for (final category in categories)
                           Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: ChoiceChip(
-                              label: Text(premiumCategories[i]),
-                              selected: _category == i,
+                              label: Text(category),
+                              selected: _category == category,
                               onSelected: (_) => setState(() {
-                                _category = i;
+                                _category = category;
                                 _visible = 30;
                               }),
                             ),

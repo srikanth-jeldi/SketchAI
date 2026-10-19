@@ -53,22 +53,31 @@ class _StudioScreenState extends State<StudioScreen>
     if (_brush == BrushKind.eraser) _brush = BrushKind.pen;
   });
   List<Color> get _suggestedPalette {
+    return [..._colourOptions.map((item) => item.$2), Colors.white];
+  }
+
+  List<(String, Color)> get _colourOptions {
     final entry = ArtCatalog.entry(_editor.document.artworkId);
-    return entry != null && entry.premium
-        ? [
-            ...artworkPalettes[entry.variation].map((item) => item.$2),
-            Colors.white,
-          ]
-        : palette;
+    if (entry != null && entry.premium) return artworkPalettes[entry.variation];
+    if (entry != null && entry.adultSimple) {
+      return artworkPalettes[[0, 4, 2][entry.variation % 3]];
+    }
+    return const [
+      ('Purple', Color(0xFF8050EF)),
+      ('Pink', Color(0xFFED83B5)),
+      ('Red', Color(0xFFEF675B)),
+      ('Sunshine', Color(0xFFFFC94D)),
+      ('Green', Color(0xFF60B880)),
+      ('Blue', Color(0xFF548AC6)),
+      ('Orange', Color(0xFFF3A455)),
+      ('Charcoal', Color(0xFF292034)),
+    ];
   }
 
   String _colourName(Color color) {
-    final entry = ArtCatalog.entry(_editor.document.artworkId);
     if (color == Colors.white) return 'Reset';
-    if (entry != null && entry.premium) {
-      for (final item in artworkPalettes[entry.variation]) {
-        if (item.$2 == color) return item.$1;
-      }
+    for (final item in _colourOptions) {
+      if (item.$2 == color) return item.$1;
     }
     return '#${color.toARGB32().toRadixString(16).substring(2)}';
   }
@@ -79,8 +88,8 @@ class _StudioScreenState extends State<StudioScreen>
     _editor = DrawingEditor(widget.document);
     _fillMode = widget.document.artworkId != null;
     final entry = ArtCatalog.entry(widget.document.artworkId);
-    if (entry != null && entry.premium) {
-      _color = artworkPalettes[entry.variation].first.$2;
+    if (entry != null) {
+      _color = _suggestedPalette.first;
     }
     _lastFilledCount = widget.document.regionColors.length;
     _editor.addListener(_changed);
