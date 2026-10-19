@@ -168,8 +168,10 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
         (event.localPosition - _fillStart!).distance < 12) {
       final doc = widget.editor.document;
       final p = _toDocument(event.localPosition);
-      final region = ArtCatalog.design(doc.artworkId!)
-          .regionAt(Offset(p.dx * 1000 / doc.width, p.dy * 1000 / doc.height));
+      final region = ArtCatalog.design(doc.artworkId!).regionAt(
+        Offset(p.dx * 1000 / doc.width, p.dy * 1000 / doc.height),
+        tolerance: (8 / _scene.scale * 1000 / doc.width).clamp(0, 12),
+      );
       _fillStart = null;
       if (region != null) {
         widget.editor.fillRegion(region.id, widget.color.toARGB32());

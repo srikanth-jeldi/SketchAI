@@ -19,6 +19,17 @@ import 'package:sketchora/screens/gallery_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  test('near-line fill selects nearby area without filling distant space', () {
+    final region = ArtRegion(
+      'r1',
+      Path()..addRect(const Rect.fromLTWH(100, 100, 50, 50)),
+      Colors.red,
+    );
+    final art = ArtDesign(const ArtEntry(0, 0), [region], []);
+    expect(art.regionAt(const Offset(97, 120)), isNull);
+    expect(art.regionAt(const Offset(97, 120), tolerance: 6)?.id, 'r1');
+    expect(art.regionAt(const Offset(80, 120), tolerance: 6), isNull);
+  });
   setUpAll(() async {
     await loadPremiumArt();
   });
@@ -272,6 +283,28 @@ void main() {
       await tester.pumpAndSettle();
       expect(store.saved?.artworkId, 'premium_0');
       expect(find.text('Sample'), findsOneWidget);
+      expect(find.text('Suggested palette · make it yours'), findsOneWidget);
+      expect(find.byType(Slider), findsNothing);
+      await tester.tap(find.text('Move'));
+      await tester.tap(find.text('Rose'));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<DrawingCanvas>(find.byType(DrawingCanvas)).handMode,
+        isFalse,
+      );
+      expect(
+        tester.widget<DrawingCanvas>(find.byType(DrawingCanvas)).color,
+        const Color(0xFFD76C87),
+      );
+      await tester.tap(find.text('Paint'));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<DrawingCanvas>(find.byType(DrawingCanvas)).fillMode,
+        isFalse,
+      );
+      expect(find.byType(Slider), findsNWidgets(2));
+      await tester.tap(find.text('Fill'));
+      await tester.pumpAndSettle();
       await _capture(tester, boundary, 'colouring-studio');
       await tester.tap(find.text('Sample'));
       await tester.pumpAndSettle();
@@ -359,8 +392,7 @@ class _MemoryStore extends SketchStore {
   SketchDocument? saved;
   _MemoryStore(super.directory);
   @override
-  Future<SketchLoadResult> loadAll() async =>
-      SketchLoadResult([if (saved != null) saved!], 0, 0);
+  Future<SketchLoadResult> loadAll() async => SketchLoadResult([?saved], 0, 0);
   @override
   Future<void> save(SketchDocument document) async {
     saved = document;

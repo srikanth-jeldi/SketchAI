@@ -100,6 +100,33 @@ List<ArtRegion> _outlineRegions(Uint8List rgba, int width, int height) {
     counts.add(tail);
   }
   final paths = <int, Path>{};
+  // Preserve component IDs from v0.3 saves, but extend colour beneath ink.
+  // Conservative source barriers otherwise leave white stripes where the
+  // monochrome display suppresses pale source texture.
+  var head = 0, tail = 0;
+  for (var p = 0; p < labels.length; p++) {
+    if (labels[p] > 0 && counts[labels[p]] >= 18) {
+      queue[tail++] = p;
+    } else {
+      labels[p] = 0;
+    }
+  }
+  while (head < tail) {
+    final p = queue[head++], x = p % w;
+    // Absorb discarded texture specks into the nearest original area. Existing
+    // area seeds never change ownership; ink is drawn above this colour map.
+    for (final q in [
+      if (x > 0) p - 1,
+      if (x < w - 1) p + 1,
+      if (p >= w) p - w,
+      if (p < labels.length - w) p + w,
+    ]) {
+      if (labels[q] == 0) {
+        labels[q] = labels[p];
+        queue[tail++] = q;
+      }
+    }
+  }
   final sx = 750 / w, sy = 1000 / h;
   for (var y = 0; y < h; y++) {
     var x = 0;
@@ -108,7 +135,7 @@ List<ArtRegion> _outlineRegions(Uint8List rgba, int width, int height) {
       while (x < w && labels[y * w + x] == id) {
         x++;
       }
-      if (id > 0 && counts[id] >= 18) {
+      if (id > 0) {
         (paths[id] ??= Path()).addRect(
           Rect.fromLTWH(125 + start * sx, y * sy, (x - start) * sx, sy),
         );

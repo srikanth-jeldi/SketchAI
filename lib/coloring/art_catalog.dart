@@ -66,9 +66,31 @@ class ArtDesign {
   final List<ArtRegion> regions;
   final List<Path> details;
   const ArtDesign(this.entry, this.regions, this.details);
-  ArtRegion? regionAt(Offset position) {
+  ArtRegion? regionAt(Offset position, {double tolerance = 0}) {
     for (final region in regions.reversed) {
       if (region.path.contains(position)) return region;
+    }
+    final nearby = tolerance > 0
+        ? regions
+              .where(
+                (region) => region.path
+                    .getBounds()
+                    .inflate(tolerance)
+                    .contains(position),
+              )
+              .toList()
+              .reversed
+        : const <ArtRegion>[];
+    for (var radius = 1.0; radius <= tolerance; radius += 1) {
+      for (var i = 0; i < 12; i++) {
+        final point =
+            position +
+            Offset(math.cos(i * math.pi / 6), math.sin(i * math.pi / 6)) *
+                radius;
+        for (final region in nearby) {
+          if (region.path.contains(point)) return region;
+        }
+      }
     }
     return null;
   }

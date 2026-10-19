@@ -13,6 +13,7 @@ import '../storage/sketch_store.dart';
 import '../theme.dart';
 import '../coloring/art_catalog.dart';
 import '../coloring/celebration.dart';
+import '../coloring/art_palettes.dart';
 
 const palette = [
   Color(0xFF292034),
@@ -46,11 +47,41 @@ class _StudioScreenState extends State<StudioScreen>
   int _revision = 0;
   bool _fillMode = false, _celebrating = false;
   int _lastFilledCount = 0;
+  void _selectColor(Color color) => setState(() {
+    _color = color;
+    _hand = false;
+    if (_brush == BrushKind.eraser) _brush = BrushKind.pen;
+  });
+  List<Color> get _suggestedPalette {
+    final entry = ArtCatalog.entry(_editor.document.artworkId);
+    return entry != null && entry.premium
+        ? [
+            ...artworkPalettes[entry.variation].map((item) => item.$2),
+            Colors.white,
+          ]
+        : palette;
+  }
+
+  String _colourName(Color color) {
+    final entry = ArtCatalog.entry(_editor.document.artworkId);
+    if (color == Colors.white) return 'Reset';
+    if (entry != null && entry.premium) {
+      for (final item in artworkPalettes[entry.variation]) {
+        if (item.$2 == color) return item.$1;
+      }
+    }
+    return '#${color.toARGB32().toRadixString(16).substring(2)}';
+  }
+
   @override
   void initState() {
     super.initState();
     _editor = DrawingEditor(widget.document);
     _fillMode = widget.document.artworkId != null;
+    final entry = ArtCatalog.entry(widget.document.artworkId);
+    if (entry != null && entry.premium) {
+      _color = artworkPalettes[entry.variation].first.$2;
+    }
     _lastFilledCount = widget.document.regionColors.length;
     _editor.addListener(_changed);
     WidgetsBinding.instance.addObserver(this);
@@ -300,10 +331,7 @@ class _StudioScreenState extends State<StudioScreen>
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
-    builder: (context) => _ColorSheet(
-      initial: _color,
-      onSelect: (color) => setState(() => _color = color),
-    ),
+    builder: (context) => _ColorSheet(initial: _color, onSelect: _selectColor),
   );
   Future<void> _clear() async {
     final confirmed = await showDialog<bool>(
@@ -583,108 +611,147 @@ class _StudioScreenState extends State<StudioScreen>
                   child: Column(
                     children: [
                       if (!wide) _tools(vertical: false),
+                      if (_editor.document.artworkId != null)
+                        Row(
+                          children: [
+                            const Expanded(
+                              child: Text(
+                                'Suggested palette · make it yours',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: _showColors,
+                              child: const Text('All colours'),
+                            ),
+                          ],
+                        ),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: palette
-                              .map(
-                                (color) => Semantics(
-                                  button: true,
-                                  label:
-                                      'Choose colour ${color.toARGB32().toRadixString(16)}',
-                                  selected: color == _color,
-                                  child: InkWell(
-                                    onTap: () => setState(() => _color = color),
-                                    borderRadius: BorderRadius.circular(24),
-                                    child: Container(
-                                      width: 34,
-                                      height: 34,
-                                      padding: const EdgeInsets.all(3),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: color == _color
-                                              ? violet
-                                              : Colors.transparent,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      child: DecoratedBox(
-                                        decoration: BoxDecoration(
-                                          color: color,
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: const Color(0xFFE4DDDF),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: _suggestedPalette
+                                .map(
+                                  (color) => Semantics(
+                                    button: true,
+                                    label: 'Choose ${_colourName(color)}',
+                                    selected: color == _color,
+                                    child: InkWell(
+                                      onTap: () => _selectColor(color),
+                                      borderRadius: BorderRadius.circular(24),
+                                      child: Column(
+                                        children: [
+                                          Container(
+                                            width: 44,
+                                            height: 44,
+                                            padding: const EdgeInsets.all(3),
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: color == _color
+                                                    ? violet
+                                                    : Colors.transparent,
+                                                width: 2,
+                                              ),
+                                            ),
+                                            child: DecoratedBox(
+                                              decoration: BoxDecoration(
+                                                color: color,
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: const Color(
+                                                    0xFFE4DDDF,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
                                           ),
-                                        ),
+                                          SizedBox(
+                                            width: 54,
+                                            child: Text(
+                                              _colourName(color),
+                                              textAlign: TextAlign.center,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                fontSize: 9,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
-                                ),
-                              )
-                              .toList(),
+                                )
+                                .toList(),
+                          ),
                         ),
                       ),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.line_weight_rounded,
-                            size: 16,
-                            color: muted,
-                          ),
-                          const SizedBox(width: 6),
-                          SizedBox(
-                            width: 30,
-                            child: Text(
-                              '${_width.round()}',
-                              style: const TextStyle(fontSize: 11),
+                      if (!_fillMode || _hand)
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.line_weight_rounded,
+                              size: 16,
+                              color: muted,
                             ),
-                          ),
-                          Expanded(
-                            child: Slider(
-                              semanticFormatterCallback: (value) =>
-                                  'Brush size ${value.round()}',
-                              min: 1,
-                              max: 64,
-                              value: _width,
-                              onChanged: (value) =>
-                                  setState(() => _width = value),
+                            const SizedBox(width: 6),
+                            SizedBox(
+                              width: 30,
+                              child: Text(
+                                '${_width.round()}',
+                                style: const TextStyle(fontSize: 11),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.opacity_rounded,
-                            size: 16,
-                            color: muted,
-                          ),
-                          Expanded(
-                            child: Slider(
-                              semanticFormatterCallback: (value) =>
-                                  'Opacity ${(value * 100).round()} percent',
-                              min: .05,
-                              max: 1,
-                              value: _opacity,
-                              onChanged: (value) =>
-                                  setState(() => _opacity = value),
+                            Expanded(
+                              child: Slider(
+                                semanticFormatterCallback: (value) =>
+                                    'Brush size ${value.round()}',
+                                min: 1,
+                                max: 64,
+                                value: _width,
+                                onChanged: (value) =>
+                                    setState(() => _width = value),
+                              ),
                             ),
-                          ),
-                          SizedBox(
-                            width: 34,
-                            child: Text(
-                              '${(_opacity * 100).round()}%',
-                              style: const TextStyle(fontSize: 10),
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.opacity_rounded,
+                              size: 16,
+                              color: muted,
                             ),
-                          ),
-                        ],
-                      ),
+                            Expanded(
+                              child: Slider(
+                                semanticFormatterCallback: (value) =>
+                                    'Opacity ${(value * 100).round()} percent',
+                                min: .05,
+                                max: 1,
+                                value: _opacity,
+                                onChanged: (value) =>
+                                    setState(() => _opacity = value),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 34,
+                              child: Text(
+                                '${(_opacity * 100).round()}%',
+                                style: const TextStyle(fontSize: 10),
+                              ),
+                            ),
+                          ],
+                        ),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 7),
                         child: Text(
                           !_editor.document.activeLayer.visible
                               ? 'This layer is hidden. Show it in Layers to draw.'
                               : _fillMode && !_hand
-                              ? 'Tap a closed area to fill · sample is only a guide'
+                              ? 'Tap to fill · pinch to zoom · choose Paint for freehand'
                               : _hand
                               ? 'Drag to move your canvas · pinch to zoom'
                               : 'One finger to draw · two fingers to move & zoom',
@@ -715,7 +782,11 @@ class _StudioScreenState extends State<StudioScreen>
           }),
         ),
       for (final item in [
-        (BrushKind.pen, Icons.edit_rounded, 'Pen'),
+        (
+          BrushKind.pen,
+          Icons.edit_rounded,
+          _editor.document.artworkId != null ? 'Paint' : 'Pen',
+        ),
         (BrushKind.pencil, Icons.draw_outlined, 'Pencil'),
         (BrushKind.marker, Icons.brush_rounded, 'Marker'),
         (BrushKind.eraser, Icons.backspace_outlined, 'Eraser'),
