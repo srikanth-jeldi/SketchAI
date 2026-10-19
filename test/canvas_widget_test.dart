@@ -13,10 +13,12 @@ import 'package:sketchora/screens/gallery_screen.dart';
 import 'package:sketchora/screens/studio_screen.dart';
 import 'package:sketchora/storage/sketch_store.dart';
 import 'package:sketchora/theme.dart';
+import 'package:sketchora/coloring/art_catalog.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
+    await loadPremiumArt();
     for (final font in [
       ('DMSans', 'assets/fonts/DMSans-Variable.ttf'),
       ('DMSerif', 'assets/fonts/DMSerifDisplay-Regular.ttf'),

@@ -198,8 +198,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Widget build(BuildContext context) => Scaffold(
     bottomNavigationBar: NavigationBar(
       selectedIndex: _galleryOnly ? 1 : 0,
-      onDestinationSelected: (index) =>
-          setState(() => _galleryOnly = index == 1),
+      onDestinationSelected: (index) {
+        setState(() => _galleryOnly = index == 1);
+        if (index == 0) _load();
+      },
       height: 68,
       backgroundColor: paper,
       destinations: const [
@@ -215,291 +217,307 @@ class _GalleryScreenState extends State<GalleryScreen> {
         ),
       ],
     ),
-    body: SafeArea(
-      child: RefreshIndicator(
-        onRefresh: _load,
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-              sliver: SliverToBoxAdapter(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1120),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const BrandMark(),
-                            const SizedBox(width: 12),
-                            const Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+    body: _galleryOnly
+        ? ArtLibraryScreen(store: widget.store)
+        : SafeArea(
+            child: RefreshIndicator(
+              onRefresh: _load,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                    sliver: SliverToBoxAdapter(
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 1120),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
                                 children: [
-                                  Text(
-                                    'Sketchora',
-                                    style: TextStyle(
-                                      fontSize: 30,
-                                      fontFamily: 'DMSerif',
-                                      letterSpacing: -.8,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Sketch & Paint',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      letterSpacing: .2,
-                                      color: muted,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              tooltip: 'About Sketchora',
-                              onPressed: () => showAboutDialog(
-                                context: context,
-                                applicationName: 'Sketchora',
-                                applicationVersion: '0.2.0 · Colouring studio',
-                                applicationIcon: const BrandMark(size: 56),
-                                children: [
-                                  const Text(
-                                    'Your ideas. Your canvas.\nSketches stay on this device. No account required.\n\nExport important work before uninstalling the app.',
-                                  ),
-                                ],
-                              ),
-                              icon: const Icon(
-                                Icons.info_outline_rounded,
-                                color: muted,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 30),
-                        if (!_galleryOnly) ...[
-                          const Text(
-                            'Make something\nbeautiful.',
-                            style: TextStyle(
-                              fontFamily: 'DMSerif',
-                              fontSize: 38,
-                              height: 1.06,
-                              letterSpacing: -1.2,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'Your ideas deserve a little room to grow.',
-                            style: TextStyle(color: muted, fontSize: 13),
-                          ),
-                          const SizedBox(height: 24),
-                          SizedBox(
-                            width: double.infinity,
-                            child: GradientButton(
-                              label: _creating
-                                  ? 'Creating…'
-                                  : 'Free draw · blank canvas',
-                              icon: Icons.add_rounded,
-                              onTap: _creating ? null : _create,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: _colourDesign,
-                              icon: const Icon(Icons.palette_outlined),
-                              label: const Text(
-                                'Explore 6 detailed colouring artworks',
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                minimumSize: const Size(48, 52),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          if (_documents.isNotEmpty) ...[
-                            const Text(
-                              'Continue creating',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            _ContinueCard(
-                              document: _documents.first,
-                              store: widget.store,
-                              onTap: () => _open(_documents.first),
-                            ),
-                          ] else
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF0E7FD),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Row(
-                                children: [
-                                  Icon(
-                                    Icons.gesture_rounded,
-                                    size: 34,
-                                    color: violet,
-                                  ),
-                                  SizedBox(width: 14),
-                                  Expanded(
+                                  const BrandMark(),
+                                  const SizedBox(width: 12),
+                                  const Expanded(
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Every artist starts with a line.',
+                                          'Sketchora',
                                           style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 13,
+                                            fontSize: 30,
+                                            fontFamily: 'DMSerif',
+                                            letterSpacing: -.8,
                                           ),
                                         ),
-                                        SizedBox(height: 4),
                                         Text(
-                                          'Your first sketch belongs here.',
+                                          'Sketch & Paint',
                                           style: TextStyle(
-                                            color: muted,
                                             fontSize: 12,
+                                            letterSpacing: .2,
+                                            color: muted,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
+                                  IconButton(
+                                    tooltip: 'About Sketchora',
+                                    onPressed: () => showAboutDialog(
+                                      context: context,
+                                      applicationName: 'Sketchora',
+                                      applicationVersion:
+                                          '0.3.1 · Premium colouring',
+                                      applicationIcon: const BrandMark(
+                                        size: 56,
+                                      ),
+                                      children: [
+                                        const Text(
+                                          'Your ideas. Your canvas.\nSketches stay on this device. No account required.\n\nExport important work before uninstalling the app.',
+                                        ),
+                                      ],
+                                    ),
+                                    icon: const Icon(
+                                      Icons.info_outline_rounded,
+                                      color: muted,
+                                    ),
+                                  ),
                                 ],
                               ),
-                            ),
-                        ],
-                        const SizedBox(height: 30),
-                        Row(
-                          children: [
-                            const Expanded(
-                              child: Text(
-                                'Your sketches',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -.5,
+                              const SizedBox(height: 30),
+                              if (!_galleryOnly) ...[
+                                const Text(
+                                  'Make something\nbeautiful.',
+                                  style: TextStyle(
+                                    fontFamily: 'DMSerif',
+                                    fontSize: 38,
+                                    height: 1.06,
+                                    letterSpacing: -1.2,
+                                  ),
                                 ),
-                              ),
-                            ),
-                            Text(
-                              '${_documents.length} ${_documents.length == 1 ? 'sketch' : 'sketches'}',
-                              style: const TextStyle(
-                                color: muted,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Pick up where inspiration left off.',
-                          style: TextStyle(color: muted, fontSize: 13),
-                        ),
-                        if (_notice != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: Text(
-                              _notice!,
-                              style: const TextStyle(color: muted),
-                            ),
-                          ),
-                        if (_error != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: Row(
-                              children: [
-                                Expanded(child: Text(_error!)),
-                                TextButton(
-                                  onPressed: _load,
-                                  child: const Text('Retry'),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'Your ideas deserve a little room to grow.',
+                                  style: TextStyle(color: muted, fontSize: 13),
                                 ),
+                                const SizedBox(height: 24),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: GradientButton(
+                                    label: _creating
+                                        ? 'Creating…'
+                                        : 'Free draw · blank canvas',
+                                    icon: Icons.add_rounded,
+                                    onTap: _creating ? null : _create,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    onPressed: _colourDesign,
+                                    icon: const Icon(Icons.palette_outlined),
+                                    label: const Text(
+                                      'Explore 6 detailed colouring artworks',
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      minimumSize: const Size(48, 52),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                if (_documents.isNotEmpty) ...[
+                                  const Text(
+                                    'Continue creating',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _ContinueCard(
+                                    document: _documents.first,
+                                    store: widget.store,
+                                    onTap: () => _open(_documents.first),
+                                  ),
+                                ] else
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF0E7FD),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: const Row(
+                                      children: [
+                                        Icon(
+                                          Icons.gesture_rounded,
+                                          size: 34,
+                                          color: violet,
+                                        ),
+                                        SizedBox(width: 14),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Every artist starts with a line.',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                              SizedBox(height: 4),
+                                              Text(
+                                                'Your first sketch belongs here.',
+                                                style: TextStyle(
+                                                  color: muted,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                               ],
-                            ),
+                              const SizedBox(height: 30),
+                              Row(
+                                children: [
+                                  const Expanded(
+                                    child: Text(
+                                      'Your sketches',
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: -.5,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '${_documents.length} ${_documents.length == 1 ? 'sketch' : 'sketches'}',
+                                    style: const TextStyle(
+                                      color: muted,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Pick up where inspiration left off.',
+                                style: TextStyle(color: muted, fontSize: 13),
+                              ),
+                              if (_notice != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 16),
+                                  child: Text(
+                                    _notice!,
+                                    style: const TextStyle(color: muted),
+                                  ),
+                                ),
+                              if (_error != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 16),
+                                  child: Row(
+                                    children: [
+                                      Expanded(child: Text(_error!)),
+                                      TextButton(
+                                        onPressed: _load,
+                                        child: const Text('Retry'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              const SizedBox(height: 20),
+                            ],
                           ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            if (_loading)
-              const SliverToBoxAdapter(
-                child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(30),
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
-              )
-            else
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                sliver: SliverLayoutBuilder(
-                  builder: (context, constraints) {
-                    final width = constraints.crossAxisExtent;
-                    final columns = width > 1000
-                        ? 4
-                        : width > 650
-                        ? 3
-                        : width > 340
-                        ? 2
-                        : 1;
-                    return SliverGrid(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        if (index == 0) {
-                          return _NewCard(onTap: _creating ? null : _create);
-                        }
-                        final doc = _documents[index - 1];
-                        return _SketchCard(
-                          document: doc,
-                          store: widget.store,
-                          onTap: () => _open(doc),
-                          onAction: (action) => _action(doc, action),
-                        );
-                      }, childCount: _documents.length + 1),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: columns,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: .80,
+                        ),
                       ),
-                    );
-                  },
-                ),
-              ),
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.all(30),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.offline_pin_outlined, size: 15, color: muted),
-                    SizedBox(width: 8),
-                    Text(
-                      'Made for your flow. Saved on your device.',
-                      style: TextStyle(color: muted, fontSize: 11),
                     ),
-                  ],
-                ),
+                  ),
+                  if (_loading)
+                    const SliverToBoxAdapter(
+                      child: Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(30),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      sliver: SliverLayoutBuilder(
+                        builder: (context, constraints) {
+                          final width = constraints.crossAxisExtent;
+                          final columns = width > 1000
+                              ? 4
+                              : width > 650
+                              ? 3
+                              : width > 340
+                              ? 2
+                              : 1;
+                          return SliverGrid(
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              if (index == 0) {
+                                return _NewCard(
+                                  onTap: _creating ? null : _create,
+                                );
+                              }
+                              final doc = _documents[index - 1];
+                              return _SketchCard(
+                                document: doc,
+                                store: widget.store,
+                                onTap: () => _open(doc),
+                                onAction: (action) => _action(doc, action),
+                              );
+                            }, childCount: _documents.length + 1),
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: columns,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 16,
+                                  childAspectRatio: .80,
+                                ),
+                          );
+                        },
+                      ),
+                    ),
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.all(30),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.offline_pin_outlined,
+                            size: 15,
+                            color: muted,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Made for your flow. Saved on your device.',
+                            style: TextStyle(color: muted, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
-    ),
+          ),
   );
 }
 

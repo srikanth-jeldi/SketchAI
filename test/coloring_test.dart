@@ -15,12 +15,52 @@ import 'package:sketchora/drawing/editor.dart';
 import 'package:sketchora/drawing/renderer.dart';
 import 'package:sketchora/storage/sketch_store.dart';
 import 'package:sketchora/theme.dart';
+import 'package:sketchora/screens/gallery_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
     await loadPremiumArt();
   });
+  testWidgets(
+    'bottom Gallery opens artwork library even with no saved sketches',
+    (tester) async {
+      final dir = (await tester.runAsync(
+        () => Directory.systemTemp.createTemp('sketchora-gallery-'),
+      ))!;
+      final store = _MemoryStore(dir);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: sketchoraTheme(),
+          home: GalleryScreen(store: store),
+        ),
+      );
+      await tester.runAsync(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Gallery'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ArtLibraryScreen), findsOneWidget);
+      expect(find.text('Botanical Reverie'), findsOneWidget);
+      await tester.tap(find.text('Home'));
+      await tester.pumpAndSettle();
+      expect(find.text('Your sketches'), findsOneWidget);
+      await tester.tap(find.text('Gallery'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Botanical Reverie'));
+      await tester.pumpAndSettle();
+      expect(find.text('Start colouring'), findsOneWidget);
+      await tester.ensureVisible(find.text('Start colouring'));
+      await tester.tap(find.text('Start colouring'));
+      await tester.pumpAndSettle();
+      expect(find.byType(DrawingCanvas), findsOneWidget);
+      expect(store.saved?.artworkId, 'premium_0');
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      await tester.runAsync(() => dir.delete(recursive: true));
+    },
+  );
   testWidgets(
     'chosen fill colour and reset render correctly through the retained cache',
     (tester) async {
@@ -318,6 +358,9 @@ Future<void> _capture(WidgetTester tester, GlobalKey key, String name) async {
 class _MemoryStore extends SketchStore {
   SketchDocument? saved;
   _MemoryStore(super.directory);
+  @override
+  Future<SketchLoadResult> loadAll() async =>
+      SketchLoadResult([if (saved != null) saved!], 0, 0);
   @override
   Future<void> save(SketchDocument document) async {
     saved = document;
