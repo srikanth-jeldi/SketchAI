@@ -105,16 +105,15 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final entries =
-        List.generate(2000, (i) => ArtCatalog.entries[(i % 10) * 200 + i ~/ 10])
-            .where(
-              (entry) =>
-                  (_category == null || entry.family == _category) &&
-                  '${entry.title} ${entry.category}'.toLowerCase().contains(
-                    _query.toLowerCase(),
-                  ),
-            )
-            .toList();
+    final entries = premiumEntries
+        .where(
+          (entry) =>
+              (_category == null || entry.variation == _category) &&
+              '${entry.title} ${entry.category}'.toLowerCase().contains(
+                _query.toLowerCase(),
+              ),
+        )
+        .toList();
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -131,14 +130,14 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    '2,000 original vector designs · 2K export',
+                    '6 detailed artworks · colour your own way',
                     style: TextStyle(color: muted, fontSize: 12),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     decoration: const InputDecoration(
                       prefixIcon: Icon(Icons.search_rounded),
-                      hintText: 'Flowers, cats, little homes…',
+                      hintText: 'Botanical, fantasy, landscapes…',
                     ),
                     onChanged: (value) => setState(() {
                       _query = value;
@@ -162,11 +161,11 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
                             }),
                           ),
                         ),
-                        for (var i = 0; i < artCategories.length; i++)
+                        for (var i = 0; i < premiumCategories.length; i++)
                           Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: ChoiceChip(
-                              label: Text(artCategories[i]),
+                              label: Text(premiumCategories[i]),
                               selected: _category == i,
                               onSelected: (_) => setState(() {
                                 _category = i;

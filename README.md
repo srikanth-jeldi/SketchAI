@@ -1,10 +1,11 @@
 # Sketchora — Sketch & Paint
 
-Version 0.2.0 adds a colouring studio: 2,000 vector design variations across 10
-families, matching colour guides, tap-to-fill, 2K export, persisted progress and
-completion confetti/applause. See [colouring content and testing](docs/COLOURING_LIBRARY.md).
+Version 0.3.0 replaces the visible colouring library with six approved detailed
+artworks, expandable colour references, tap-to-fill, brush painting, persisted
+progress and completion applause. See [premium beta scope and device checks](docs/PREMIUM_BETA.md).
+The earlier 2,000 procedural variants remain supported for legacy saves only.
 
-![Colouring design families](docs/previews/colouring-designs.png)
+![Premium artwork library](docs/previews/premium-library.png)
 
 [Colouring screen preview](docs/previews/colouring-studio.png)
 

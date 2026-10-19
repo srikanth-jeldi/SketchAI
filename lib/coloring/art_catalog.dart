@@ -1,6 +1,11 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+part 'premium_art.dart';
 
 const artCategories = [
   'Flowers',
@@ -33,10 +38,16 @@ const _blues = [0xFF78BBD7, 0xFF8D9DDB, 0xFF8ED1CB, 0xFFAECEEB];
 class ArtEntry {
   final int family, variation;
   const ArtEntry(this.family, this.variation);
-  String get id => 'art_${family}_$variation';
-  String get category => artCategories[family];
-  String get title => '${artNames[family]} ${variation + 1}';
-  String get difficulty => variation % 3 == 0
+  bool get premium => family == 10;
+  String get id => premium ? 'premium_$variation' : 'art_${family}_$variation';
+  String get category =>
+      premium ? premiumCategories[variation] : artCategories[family];
+  String get title => premium
+      ? premiumTitles[variation]
+      : '${artNames[family]} ${variation + 1}';
+  String get difficulty => premium
+      ? 'Detailed'
+      : variation % 3 == 0
       ? 'Relaxed'
       : variation % 3 == 1
       ? 'Playful'
@@ -69,6 +80,9 @@ class ArtCatalog {
   );
   static final _cache = <String, ArtDesign>{};
   static ArtEntry? entry(String? id) {
+    for (final art in premiumEntries) {
+      if (art.id == id) return art;
+    }
     final match = RegExp(r'^art_(\d+)_(\d+)$').firstMatch(id ?? '');
     if (match == null) return null;
     final family = int.parse(match[1]!), variant = int.parse(match[2]!);
@@ -78,6 +92,7 @@ class ArtCatalog {
   }
 
   static ArtDesign design(String id) {
+    if (premiumDesigns.containsKey(id)) return premiumDesigns[id]!;
     final cached = _cache.remove(id);
     if (cached != null) {
       _cache[id] = cached;
@@ -691,6 +706,17 @@ void paintArt(
   bool fills = true,
   bool outlines = true,
 }) {
+  if (art.entry.premium) {
+    paintPremium(
+      canvas,
+      art,
+      colors: colors,
+      sample: sample,
+      fills: fills,
+      outlines: outlines,
+    );
+    return;
+  }
   final ink = Paint()
     ..color = const Color(0xFF292233)
     ..style = PaintingStyle.stroke

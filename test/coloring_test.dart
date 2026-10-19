@@ -18,6 +18,9 @@ import 'package:sketchora/theme.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    await loadPremiumArt();
+  });
   testWidgets(
     'chosen fill colour and reset render correctly through the retained cache',
     (tester) async {
@@ -222,12 +225,12 @@ void main() {
       );
       await tester.pumpAndSettle();
       await _capture(tester, boundary, 'colouring-library');
-      await tester.tap(find.text('Petal poetry 1').first);
+      await tester.tap(find.text('Botanical Reverie').first);
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Start colouring'));
       await tester.tap(find.text('Start colouring'));
       await tester.pumpAndSettle();
-      expect(store.saved?.artworkId, 'art_0_0');
+      expect(store.saved?.artworkId, 'premium_0');
       expect(find.text('Sample'), findsOneWidget);
       await _capture(tester, boundary, 'colouring-studio');
       await tester.tap(find.text('Sample'));

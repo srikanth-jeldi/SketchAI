@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'screens/gallery_screen.dart';
 import 'storage/sketch_store.dart';
 import 'theme.dart';
+import 'coloring/art_catalog.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,7 +41,12 @@ class _BootScreenState extends State<_BootScreen> {
   @override
   void initState() {
     super.initState();
-    _store = SketchStore.open();
+    _store = _open();
+  }
+
+  Future<SketchStore> _open() async {
+    await loadPremiumArt();
+    return SketchStore.open();
   }
 
   @override

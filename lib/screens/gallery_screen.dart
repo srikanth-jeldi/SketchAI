@@ -312,7 +312,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                               onPressed: _colourDesign,
                               icon: const Icon(Icons.palette_outlined),
                               label: const Text(
-                                'Colour a design · 2,000 to explore',
+                                'Explore 6 detailed colouring artworks',
                               ),
                               style: OutlinedButton.styleFrom(
                                 minimumSize: const Size(48, 52),

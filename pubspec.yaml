@@ -1,7 +1,7 @@
 name: sketchora
 description: "Sketchora — a quiet space for bold ideas. Offline sketching and painting."
 publish_to: 'none'
-version: 0.2.0+2
+version: 0.3.0+3
 
 environment:
   sdk: ^3.13.3
@@ -29,6 +29,7 @@ flutter:
       fonts:
         - asset: assets/fonts/DMSerifDisplay-Regular.ttf
   assets:
+    - assets/artwork/
     - assets/audio/applause.wav
     - assets/branding/sketchora-icon-v1.png
     - assets/branding/sketchora-full-logo-v1.png
