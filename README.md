@@ -1,6 +1,6 @@
 # Sketluma — Sketch & Paint
 
-**0.6.1+9 test candidate:** renamed to Sketluma with Powered by EpitomeHub® branding and refreshed store images. The visible Done action, saved snapshot animation and Google demo ads remain available. See [release and store notes](docs/RELEASE_0_6_1.md). Live monetization is not enabled.
+**0.6.2+10 test candidate:** company package `com.epitomehub.sketluma`, with Sketluma / Powered by EpitomeHub® branding. This package installs separately from the older personal-package test app. See [package migration notes](docs/RELEASE_0_6_2.md). The drawing tools, saved snapshot animation and Google demo ads remain available; live monetization is not enabled.
 
 Previous candidate **0.5.0+7** added eight illustrated colouring scenes and on-demand artwork loading, background mask preparation, memory-pressure cleanup and local diagnostics. See [actual content count, source resolution, signing and remaining Play steps](docs/RELEASE_0_5.md). The current build remains an internal testing candidate, not a completed 2,000-artwork production release.
 
@@ -45,7 +45,7 @@ flutter test
 flutter build apk --debug
 ```
 
-App ID: `com.srikanth.sketchora` (retained for update compatibility). Version: `0.6.1+9`.
+App ID: `com.epitomehub.sketluma` (new company package; separate install). Version: `0.6.2+10`.
 Current project minimums: Android 7.0 (API 24), iOS 15.0.
 Machine SDK paths live in ignored `android/local.properties`.
 Use `scripts/verify.ps1` for Windows checks and APK packaging. It also directs

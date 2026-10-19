@@ -313,7 +313,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                                     onPressed: () => showAboutDialog(
                                       context: context,
                                       applicationName: 'Sketluma',
-                                      applicationVersion: '0.6.1 · Sketluma',
+                                      applicationVersion: '0.6.2 · Sketluma',
                                       applicationLegalese:
                                           'Powered by EpitomeHub®',
                                       applicationIcon: const BrandMark(

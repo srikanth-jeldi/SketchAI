@@ -1,7 +1,7 @@
 name: sketchora
 description: "Sketluma — a quiet space for bold ideas. Offline sketching and painting."
 publish_to: 'none'
-version: 0.6.1+9
+version: 0.6.2+10
 
 environment:
   sdk: ^3.13.3

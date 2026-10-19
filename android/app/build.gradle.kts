@@ -13,7 +13,7 @@ if (uploadPropertiesFile.exists()) FileInputStream(uploadPropertiesFile).use { u
 val testSigning = System.getenv("SKETCHORA_TEST_SIGNING") == "1"
 
 android {
-    namespace = "com.srikanth.sketchora"
+    namespace = "com.epitomehub.sketluma"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -24,7 +24,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.srikanth.sketchora"
+        applicationId = "com.epitomehub.sketluma"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
