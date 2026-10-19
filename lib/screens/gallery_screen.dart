@@ -4,8 +4,11 @@ import '../drawing/document.dart';
 import '../drawing/renderer.dart';
 import '../storage/sketch_store.dart';
 import '../theme.dart';
-import 'studio_screen.dart';
+import 'artwork_studio_gate.dart';
 import '../coloring/library_screen.dart';
+import '../storage/local_diagnostics.dart';
+
+import 'package:share_plus/share_plus.dart';
 
 class GalleryScreen extends StatefulWidget {
   final SketchStore store;
@@ -53,7 +56,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
     await Navigator.push<void>(
       context,
       MaterialPageRoute(
-        builder: (_) => StudioScreen(document: doc, store: widget.store),
+        builder: (_) => ArtworkStudioGate(document: doc, store: widget.store),
       ),
     );
     await _load();
@@ -139,6 +142,25 @@ class _GalleryScreenState extends State<GalleryScreen> {
   void _snack(String message) =>
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(message)));
+  Future<void> _shareDiagnostics() async {
+    try {
+      final file = await LocalDiagnostics.exportFile();
+      if (!mounted) return;
+      final box = context.findRenderObject() as RenderBox?;
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: 'Sketchora local diagnostics. Shared manually by the user.',
+          sharePositionOrigin: box == null
+              ? null
+              : box.localToGlobal(Offset.zero) & box.size,
+        ),
+      );
+    } catch (_) {
+      if (mounted) _snack('Could not prepare diagnostics. Please try again.');
+    }
+  }
+
   Future<void> _action(SketchDocument doc, String action) async {
     try {
       if (action == 'rename') {
@@ -269,13 +291,19 @@ class _GalleryScreenState extends State<GalleryScreen> {
                                       context: context,
                                       applicationName: 'Sketchora',
                                       applicationVersion:
-                                          '0.4.0 · Kids & Adults',
+                                          '0.5.0 · Illustrated collection',
                                       applicationIcon: const BrandMark(
                                         size: 56,
                                       ),
                                       children: [
                                         const Text(
                                           'Your ideas. Your canvas.\nSketches stay on this device. No account required.\n\nExport important work before uninstalling the app.',
+                                        ),
+                                        TextButton(
+                                          onPressed: _shareDiagnostics,
+                                          child: const Text(
+                                            'Share local diagnostics',
+                                          ),
                                         ),
                                       ],
                                     ),

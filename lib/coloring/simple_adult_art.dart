@@ -17,11 +17,18 @@ const simpleAdultEntries = [
   ArtEntry(11, 5),
 ];
 final kidsEntries = List<ArtEntry>.unmodifiable([
+  illustratedEntries[0],
+  illustratedEntries[1],
+  illustratedEntries[4],
+  illustratedEntries[5],
   for (var variant = 0; variant < 3; variant++)
     for (var family = 0; family < 10; family++) ArtEntry(family, variant),
 ]);
 final adultEntries = List<ArtEntry>.unmodifiable([
-  ...simpleAdultEntries,
+  illustratedEntries[2],
+  illustratedEntries[3],
+  illustratedEntries[6],
+  illustratedEntries[7],
   ...premiumEntries,
 ]);
 

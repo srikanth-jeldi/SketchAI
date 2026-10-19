@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../drawing/document.dart';
-import '../screens/studio_screen.dart';
+import '../screens/artwork_studio_gate.dart';
 import '../storage/sketch_store.dart';
 import '../theme.dart';
 import 'art_catalog.dart';
+import 'artwork_view.dart';
 
 class ArtLibraryScreen extends StatefulWidget {
   final SketchStore store;
@@ -42,7 +43,7 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
                   height: 230,
                   child: AspectRatio(
                     aspectRatio: 1,
-                    child: CustomPaint(painter: ArtworkPainter(entry.id)),
+                    child: ArtworkView(entry.id),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -86,7 +87,8 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
         await Navigator.push<void>(
           context,
           MaterialPageRoute(
-            builder: (_) => StudioScreen(document: doc, store: widget.store),
+            builder: (_) =>
+                ArtworkStudioGate(document: doc, store: widget.store),
           ),
         );
       }
@@ -268,9 +270,7 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
                               child: Padding(
                                 padding: const EdgeInsets.all(10),
                                 child: SizedBox.expand(
-                                  child: CustomPaint(
-                                    painter: ArtworkPainter(entry.id),
-                                  ),
+                                  child: ArtworkView(entry.id),
                                 ),
                               ),
                             ),

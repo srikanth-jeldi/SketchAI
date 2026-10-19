@@ -1,5 +1,7 @@
 # Sketchora — Sketch & Paint
 
+Current candidate: **0.5.0+7** adds eight illustrated colouring scenes and on-demand artwork loading, background mask preparation, memory-pressure cleanup and local diagnostics. See [actual content count, source resolution, signing and remaining Play steps](docs/RELEASE_0_5.md). This is an internal testing candidate, not a completed 2,000-artwork production release.
+
 Version 0.3.0 replaces the visible colouring library with six approved detailed
 artworks, expandable colour references, tap-to-fill, brush painting, persisted
 progress and completion applause. See [premium beta scope and device checks](docs/PREMIUM_BETA.md).

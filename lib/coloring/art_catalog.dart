@@ -1,12 +1,13 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
 part 'premium_art.dart';
 part 'simple_adult_art.dart';
+part 'illustrated_art.dart';
 
 const artCategories = [
   'Flowers',
@@ -40,13 +41,19 @@ class ArtEntry {
   final int family, variation;
   const ArtEntry(this.family, this.variation);
   bool get premium => family == 10;
+  bool get illustrated => family == 12;
+  bool get raster => premium || illustrated;
   bool get adultSimple => family == 11;
-  String get id => adultSimple
+  String get id => illustrated
+      ? 'illustrated_$variation'
+      : adultSimple
       ? 'adult_$variation'
       : premium
       ? 'premium_$variation'
       : 'art_${family}_$variation';
-  String get category => adultSimple
+  String get category => illustrated
+      ? illustrationCategories[variation]
+      : adultSimple
       ? (variation % 3 == 0
             ? 'Botanical'
             : variation % 3 == 1
@@ -55,12 +62,16 @@ class ArtEntry {
       : premium
       ? premiumCategories[variation]
       : artCategories[family];
-  String get title => adultSimple
+  String get title => illustrated
+      ? illustrationTitles[variation]
+      : adultSimple
       ? simpleAdultTitles[variation]
       : premium
       ? premiumTitles[variation]
       : '${artNames[family]} ${variation + 1}';
-  String get difficulty => premium
+  String get difficulty => illustrated
+      ? (variation < 4 ? 'Easy' : 'Medium')
+      : premium
       ? 'Detailed'
       : adultSimple
       ? (variation < 3 ? 'Easy' : 'Medium')
@@ -119,6 +130,9 @@ class ArtCatalog {
   );
   static final _cache = <String, ArtDesign>{};
   static ArtEntry? entry(String? id) {
+    for (final art in illustratedEntries) {
+      if (art.id == id) return art;
+    }
     for (final art in simpleAdultEntries) {
       if (art.id == id) return art;
     }
@@ -142,6 +156,9 @@ class ArtCatalog {
     }
     final metadata = entry(id);
     if (metadata == null) throw const FormatException('Unknown artwork');
+    if (metadata.raster) {
+      throw StateError('Artwork must be prepared before painting');
+    }
     final result = metadata.adultSimple
         ? buildSimpleAdult(metadata)
         : _ArtBuilder(metadata).build();
@@ -750,7 +767,7 @@ void paintArt(
   bool fills = true,
   bool outlines = true,
 }) {
-  if (art.entry.premium) {
+  if (art.entry.raster) {
     paintPremium(
       canvas,
       art,

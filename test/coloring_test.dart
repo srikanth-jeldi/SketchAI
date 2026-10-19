@@ -56,7 +56,7 @@ void main() {
       expect(find.text('Botanical Reverie'), findsNothing);
       await tester.tap(find.text('Adults'));
       await tester.pumpAndSettle();
-      expect(find.text('Olive & clay'), findsOneWidget);
+      expect(find.text('Cottage in bloom'), findsOneWidget);
       await tester.tap(find.text('Detailed'));
       await tester.pumpAndSettle();
       expect(find.text('Botanical Reverie'), findsOneWidget);
@@ -74,6 +74,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Start colouring'), findsOneWidget);
       await tester.ensureVisible(find.text('Start colouring'));
+      await tester.runAsync(() => ensureArtworkLoaded('premium_0'));
       await tester.tap(find.text('Start colouring'));
       await tester.pumpAndSettle();
       expect(find.byType(DrawingCanvas), findsOneWidget);
@@ -294,6 +295,7 @@ void main() {
       await tester.tap(find.text('Botanical Reverie').first);
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Start colouring'));
+      await tester.runAsync(() => ensureArtworkLoaded('premium_0'));
       await tester.tap(find.text('Start colouring'));
       await tester.pumpAndSettle();
       expect(store.saved?.artworkId, 'premium_0');

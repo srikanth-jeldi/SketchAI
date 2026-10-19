@@ -190,6 +190,10 @@ void paintDocument(
   }
   for (final layer in doc.layers) {
     if (!layer.visible || layer.opacity <= 0) continue;
+    if (layer.strokes.isEmpty &&
+        !(layer.id == doc.activeLayerId && live != null)) {
+      continue;
+    }
     // Each layer is isolated: an eraser never punches through lower layers.
     canvas.saveLayer(
       bounds,
@@ -215,25 +219,29 @@ Future<Uint8List> renderPng(
   bool transparent = false,
   int? maxSide,
 }) async {
+  await ensureArtworkLoaded(doc.artworkId);
   final scale = maxSide == null
       ? 1.0
       : math.min(1.0, maxSide / math.max(doc.width, doc.height));
   final recorder = ui.PictureRecorder();
   final canvas = Canvas(recorder)..scale(scale);
   final cache = DrawingRenderCache();
-  paintDocument(canvas, doc, cache, paper: !transparent);
-  final picture = recorder.endRecording();
-  final image = await picture.toImage(
-    (doc.width * scale).round(),
-    (doc.height * scale).round(),
-  );
+  ui.Picture? picture;
+  ui.Image? image;
   try {
+    paintDocument(canvas, doc, cache, paper: !transparent);
+    picture = recorder.endRecording();
+    image = await picture.toImage(
+      (doc.width * scale).round(),
+      (doc.height * scale).round(),
+    );
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
     if (bytes == null) throw StateError('Could not encode PNG');
     return bytes.buffer.asUint8List();
   } finally {
-    image.dispose();
-    picture.dispose();
+    image?.dispose();
+    picture?.dispose();
+    if (recorder.isRecording) recorder.endRecording().dispose();
     cache.dispose();
   }
 }

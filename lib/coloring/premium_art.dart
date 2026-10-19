@@ -34,35 +34,111 @@ const premiumEntries = [
 ];
 final premiumDesigns = <String, ArtDesign>{};
 final _premiumImages = <String, ui.Image>{};
-Future<void>? _premiumLoading;
+final _referenceImages = <String, ui.Image>{};
+final _rasterLoads = <String, Future<void>>{};
+final _rasterPins = <String, int>{};
+Future<void> _rasterQueue = Future.value();
 
 /// Decode approved sheets once. Regions come from the actual outline pixels,
 /// never the independently painted colour reference.
-Future<void> loadPremiumArt() => _premiumLoading ??= _loadPremiumArt();
+Future<void> loadPremiumArt() =>
+    Future.wait(premiumEntries.map((e) => ensureArtworkLoaded(e.id)))
+        .then((_) {});
 
-Future<void> _loadPremiumArt() async {
-  for (var n = 0; n < premiumEntries.length; n++) {
-    final bytes = await rootBundle.load(
-      'assets/artwork/${_premiumFiles[n]}-v1.png',
-    );
-    final codec = await ui.instantiateImageCodec(bytes.buffer.asUint8List());
-    final image = (await codec.getNextFrame()).image;
-    codec.dispose();
-    final data = (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!
-        .buffer
-        .asUint8List();
-    final regions = _outlineRegions(data, image.width, image.height);
-    final entry = premiumEntries[n];
-    _premiumImages[entry.id] = image;
-    premiumDesigns[entry.id] = ArtDesign(entry, regions, const []);
-    await Future<void>.delayed(Duration.zero);
+void retainArtwork(String? id) {
+  if (id != null && ArtCatalog.entry(id)?.raster == true) {
+    _rasterPins[id] = (_rasterPins[id] ?? 0) + 1;
   }
 }
 
-List<ArtRegion> _outlineRegions(Uint8List rgba, int width, int height) {
+void releaseArtwork(String? id) {
+  if (id == null) return;
+  final pins = (_rasterPins[id] ?? 0) - 1;
+  if (pins <= 0) {
+    _rasterPins.remove(id);
+  } else {
+    _rasterPins[id] = pins;
+  }
+  clearUnusedArtwork();
+}
+
+void clearUnusedArtwork() {
+  for (final id in _premiumImages.keys.toList()) {
+    if ((_rasterPins[id] ?? 0) > 0) continue;
+    _premiumImages.remove(id)?.dispose();
+    _referenceImages.remove(id)?.dispose();
+    premiumDesigns.remove(id);
+  }
+}
+
+Future<void> ensureArtworkLoaded(String? id) {
+  if (id == null ||
+      ArtCatalog.entry(id)?.raster != true ||
+      premiumDesigns.containsKey(id)) {
+    return Future.value();
+  }
+  return _rasterLoads.putIfAbsent(id, () {
+    final next = _rasterQueue.then((_) => _loadRaster(id));
+    _rasterQueue = next.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace _) {},
+    );
+    return next.whenComplete(() {
+      _rasterLoads.remove(id);
+    });
+  });
+}
+
+String outlineAsset(ArtEntry entry) => entry.illustrated
+    ? 'assets/artwork/${illustratedFiles[entry.variation]}-outline-v1.png'
+    : 'assets/artwork/${_premiumFiles[entry.variation]}-v1.png';
+String referenceAsset(ArtEntry entry) => entry.illustrated
+    ? 'assets/artwork/${illustratedFiles[entry.variation]}-reference-v1.png'
+    : outlineAsset(entry);
+
+Future<void> _loadRaster(String id) async {
+  final entry = ArtCatalog.entry(id)!;
+  final bytes = await rootBundle.load(outlineAsset(entry));
+  final codec = await ui.instantiateImageCodec(
+    bytes.buffer.asUint8List(),
+    targetWidth: entry.illustrated ? 1024 : null,
+  );
+  final image = (await codec.getNextFrame()).image;
+  codec.dispose();
+  try {
+    final data = (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!
+        .buffer
+        .asUint8List();
+    final mask = await compute(_outlineRuns, (
+      data,
+      image.width,
+      image.height,
+      entry.illustrated,
+    ));
+    final regions = _regionsFromRuns(mask, square: entry.illustrated);
+    if (entry.illustrated) {
+      final reference = await rootBundle.load(referenceAsset(entry));
+      final referenceCodec = await ui.instantiateImageCodec(
+        reference.buffer.asUint8List(),
+        targetWidth: 512,
+      );
+      _referenceImages[id] = (await referenceCodec.getNextFrame()).image;
+      referenceCodec.dispose();
+    }
+    _premiumImages[entry.id] = image;
+    premiumDesigns[entry.id] = ArtDesign(entry, regions, const []);
+  } catch (_) {
+    image.dispose();
+    _referenceImages.remove(id)?.dispose();
+    rethrow;
+  }
+}
+
+Map<String, Object> _outlineRuns((Uint8List, int, int, bool) input) {
+  final (rgba, width, height, square) = input;
   // Half-resolution hit masks keep touch detection and retained paths bounded.
   // A dark source pixel blocks its cell, preserving fine walls conservatively.
-  final w = width ~/ 4, h = height ~/ 2;
+  final w = width ~/ (square ? 2 : 4), h = height ~/ 2;
   final labels = Int32List(w * h);
   for (var y = 0; y < h; y++) {
     for (var x = 0; x < w; x++) {
@@ -99,7 +175,6 @@ List<ArtRegion> _outlineRegions(Uint8List rgba, int width, int height) {
     }
     counts.add(tail);
   }
-  final paths = <int, Path>{};
   // Preserve component IDs from v0.3 saves, but extend colour beneath ink.
   // Conservative source barriers otherwise leave white stripes where the
   // monochrome display suppresses pale source texture.
@@ -127,7 +202,7 @@ List<ArtRegion> _outlineRegions(Uint8List rgba, int width, int height) {
       }
     }
   }
-  final sx = 750 / w, sy = 1000 / h;
+  final runs = <int>[];
   for (var y = 0; y < h; y++) {
     var x = 0;
     while (x < w) {
@@ -136,11 +211,33 @@ List<ArtRegion> _outlineRegions(Uint8List rgba, int width, int height) {
         x++;
       }
       if (id > 0) {
-        (paths[id] ??= Path()).addRect(
-          Rect.fromLTWH(125 + start * sx, y * sy, (x - start) * sx, sy),
-        );
+        runs.addAll([id, start, y, x - start]);
       }
     }
+  }
+  return {'w': w, 'h': h, 'runs': Int32List.fromList(runs)};
+}
+
+List<ArtRegion> _regionsFromRuns(
+  Map<String, Object> mask, {
+  required bool square,
+}) {
+  final w = mask['w']! as int,
+      h = mask['h']! as int,
+      runs = mask['runs']! as Int32List;
+  final paths = <int, Path>{};
+  final sx = (square ? 1000 : 750) / w,
+      sy = 1000 / h,
+      left = square ? 0.0 : 125.0;
+  for (var i = 0; i < runs.length; i += 4) {
+    (paths[runs[i]] ??= Path()).addRect(
+      Rect.fromLTWH(
+        left + runs[i + 1] * sx,
+        runs[i + 2] * sy,
+        runs[i + 3] * sx,
+        sy,
+      ),
+    );
   }
   return [
     for (final e in paths.entries)
@@ -157,15 +254,25 @@ void paintPremium(
   required bool outlines,
 }) {
   final image = _premiumImages[art.entry.id]!;
-  const destination = Rect.fromLTWH(125, 0, 750, 1000);
+  final square = art.entry.illustrated;
+  final destination = Rect.fromLTWH(
+    square ? 0 : 125,
+    0,
+    square ? 1000 : 750,
+    1000,
+  );
   if (sample) {
     canvas.drawImageRect(
-      image,
+      square ? _referenceImages[art.entry.id]! : image,
       Rect.fromLTWH(
-        image.width / 2,
+        square ? 0 : image.width / 2,
         0,
-        image.width / 2,
-        image.height.toDouble(),
+        square
+            ? _referenceImages[art.entry.id]!.width.toDouble()
+            : image.width / 2,
+        square
+            ? _referenceImages[art.entry.id]!.height.toDouble()
+            : image.height.toDouble(),
       ),
       destination,
       Paint()..filterQuality = FilterQuality.medium,
@@ -192,7 +299,12 @@ void paintPremium(
     canvas.saveLayer(destination, Paint()..blendMode = BlendMode.multiply);
     canvas.drawImageRect(
       image,
-      Rect.fromLTWH(0, 0, image.width / 2, image.height.toDouble()),
+      Rect.fromLTWH(
+        0,
+        0,
+        square ? image.width.toDouble() : image.width / 2,
+        image.height.toDouble(),
+      ),
       destination,
       Paint()
         ..filterQuality = FilterQuality.medium
