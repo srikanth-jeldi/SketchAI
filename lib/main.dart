@@ -42,7 +42,7 @@ class SketchoraApp extends StatelessWidget {
   const SketchoraApp({super.key, this.storeLoader});
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'Sketchora',
+    title: 'Sketluma',
     debugShowCheckedModeBanner: false,
     theme: sketchoraTheme(),
     home: _BootScreen(storeLoader: storeLoader),
@@ -112,9 +112,9 @@ class _BootScreenState extends State<_BootScreen> with WidgetsBindingObserver {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Image.asset(
-                  'assets/branding/sketchora-full-logo-v1.png',
+                  'assets/branding/sketluma-full-logo-v1.png',
                   width: 340,
-                  semanticLabel: 'Sketchora. Sketch and Paint.',
+                  semanticLabel: 'Sketluma. Sketch and Paint.',
                 ),
               ),
               const SizedBox(height: 8),

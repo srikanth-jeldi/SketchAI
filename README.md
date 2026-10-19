@@ -1,6 +1,6 @@
-# Sketchora — Sketch & Paint
+# Sketluma — Sketch & Paint
 
-**0.6.0+8 test candidate:** visible Done action, saved snapshot animation, completion celebration and return to Home; Google demo banner/interstitial ads only. See [test ads and completion notes](docs/ADS_AND_COMPLETION.md). Live monetization is not enabled.
+**0.6.1+9 test candidate:** renamed to Sketluma with Powered by EpitomeHub® branding and refreshed store images. The visible Done action, saved snapshot animation and Google demo ads remain available. See [release and store notes](docs/RELEASE_0_6_1.md). Live monetization is not enabled.
 
 Previous candidate **0.5.0+7** added eight illustrated colouring scenes and on-demand artwork loading, background mask preparation, memory-pressure cleanup and local diagnostics. See [actual content count, source resolution, signing and remaining Play steps](docs/RELEASE_0_5.md). The current build remains an internal testing candidate, not a completed 2,000-artwork production release.
 
@@ -9,9 +9,9 @@ artworks, expandable colour references, tap-to-fill, brush painting, persisted
 progress and completion applause. See [premium beta scope and device checks](docs/PREMIUM_BETA.md).
 The earlier 2,000 procedural variants remain supported for legacy saves only.
 
-![Premium artwork library](docs/previews/premium-library.png)
+![Sketluma artwork library](docs/play-store/sketluma-v1/screen-03-adults.png)
 
-[Colouring screen preview](docs/previews/colouring-studio.png)
+[Colouring screen preview](docs/play-store/sketluma-v1/screen-04-colouring.png)
 
 Flutter drawing app for Android and iOS. Phase 1 is an offline testing preview
 with the approved S logo, warm ivory surfaces, violet controls and coral accents.
@@ -29,7 +29,7 @@ with the approved S logo, warm ivory surfaces, violet controls and coral accents
 - Full-resolution white/transparent PNG through the system share/save sheet.
 - Responsive phone/tablet UI and Android/iOS launcher icons.
 
-No accounts, ads, analytics or AI services. Data is stored in the app support
+No accounts or runtime AI services. Google demo ads are included; drawing works offline. Artwork is stored in the app support
 directory; iOS OS-level backup policies may apply. Uninstalling can remove work.
 Export important sketches first. Undo history is session-only.
 
@@ -45,7 +45,7 @@ flutter test
 flutter build apk --debug
 ```
 
-App ID: `com.srikanth.sketchora`. Version: `0.2.0+2`.
+App ID: `com.srikanth.sketchora` (retained for update compatibility). Version: `0.6.1+9`.
 Current project minimums: Android 7.0 (API 24), iOS 15.0.
 Machine SDK paths live in ignored `android/local.properties`.
 Use `scripts/verify.ps1` for Windows checks and APK packaging. It also directs

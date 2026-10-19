@@ -24,5 +24,5 @@ if (-not $SkipBuild) {
     Invoke-FlutterCheck -Arguments @('build', 'apk', "--$taskMode")
     New-Item -ItemType Directory -Force 'dist' | Out-Null
     $taskVersion = ((Select-String -Path 'pubspec.yaml' -Pattern '^version:').Line -replace '^version:\s*','').Split('+')[0]
-    Copy-Item -LiteralPath "build\app\outputs\flutter-apk\app-$taskMode.apk" -Destination "dist\Sketchora-$taskVersion-$taskMode.apk" -Force
+    Copy-Item -LiteralPath "build\app\outputs\flutter-apk\app-$taskMode.apk" -Destination "dist\Sketluma-$taskVersion-$taskMode.apk" -Force
 }

@@ -160,7 +160,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path)],
-          text: 'Sketchora local diagnostics. Shared manually by the user.',
+          text: 'Sketluma local diagnostics. Shared manually by the user.',
           sharePositionOrigin: box == null
               ? null
               : box.localToGlobal(Offset.zero) & box.size,
@@ -282,7 +282,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Sketchora',
+                                          'Sketluma',
                                           style: TextStyle(
                                             fontSize: 30,
                                             fontFamily: 'DMSerif',
@@ -298,16 +298,24 @@ class _GalleryScreenState extends State<GalleryScreen> {
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
+                                        Text(
+                                          'Powered by EpitomeHub®',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: muted,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
                                   IconButton(
-                                    tooltip: 'About Sketchora',
+                                    tooltip: 'About Sketluma',
                                     onPressed: () => showAboutDialog(
                                       context: context,
-                                      applicationName: 'Sketchora',
-                                      applicationVersion:
-                                          '0.6.0 · Completion & test ads',
+                                      applicationName: 'Sketluma',
+                                      applicationVersion: '0.6.1 · Sketluma',
+                                      applicationLegalese:
+                                          'Powered by EpitomeHub®',
                                       applicationIcon: const BrandMark(
                                         size: 56,
                                       ),

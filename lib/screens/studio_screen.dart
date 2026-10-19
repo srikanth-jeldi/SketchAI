@@ -346,7 +346,7 @@ class _StudioScreenState extends State<StudioScreen>
           .replaceAll(RegExp(r'[^a-zA-Z0-9 _-]'), '')
           .trim();
       final file = File(
-        '${directory.path}/${safeName.isEmpty ? 'Sketchora' : safeName}_${DateTime.now().millisecondsSinceEpoch}.png',
+        '${directory.path}/${safeName.isEmpty ? 'Sketluma' : safeName}_${DateTime.now().millisecondsSinceEpoch}.png',
       );
       await file.writeAsBytes(bytes, flush: true);
       if (!mounted) return;

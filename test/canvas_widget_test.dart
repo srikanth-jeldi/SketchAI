@@ -161,7 +161,7 @@ void main() {
     );
     await tester.runAsync(() async {
       await precacheImage(
-        const AssetImage('assets/branding/sketchora-icon-v1.png'),
+        const AssetImage('assets/branding/sketluma-icon-v1.png'),
         tester.element(find.byType(GalleryScreen)),
       );
       await precacheImage(
