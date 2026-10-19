@@ -24,7 +24,7 @@ class DrawingEditor extends ChangeNotifier {
   }
 
   void markCompleted() {
-    if (document.artworkId != null && !document.completed) {
+    if (!document.completed) {
       _edit(document.copyWith(completed: true));
     }
   }
@@ -51,6 +51,7 @@ class DrawingEditor extends ChangeNotifier {
     if (stroke.points.isEmpty || !document.activeLayer.visible) return;
     _edit(
       document.copyWith(
+        completed: false,
         layers: document.layers
             .map(
               (l) => l.id == document.activeLayerId

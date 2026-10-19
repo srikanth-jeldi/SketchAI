@@ -188,7 +188,7 @@ class SketchDocument {
     'version': artworkId == null ? 1 : 2,
     if (artworkId != null) 'artworkId': artworkId,
     if (artworkId != null) 'regionColors': regionColors,
-    if (artworkId != null) 'completed': completed,
+    if (artworkId != null || completed) 'completed': completed,
     'id': id,
     'title': title,
     'width': width,

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -14,6 +15,7 @@ import '../theme.dart';
 import '../coloring/art_catalog.dart';
 import '../coloring/celebration.dart';
 import '../coloring/art_palettes.dart';
+import '../ads/test_ads.dart';
 
 const palette = [
   Color(0xFF292034),
@@ -29,7 +31,13 @@ const palette = [
 class StudioScreen extends StatefulWidget {
   final SketchDocument document;
   final SketchStore store;
-  const StudioScreen({super.key, required this.document, required this.store});
+  final bool completionAudio;
+  const StudioScreen({
+    super.key,
+    required this.document,
+    required this.store,
+    this.completionAudio = true,
+  });
   @override
   State<StudioScreen> createState() => _StudioScreenState();
 }
@@ -128,13 +136,35 @@ class _StudioScreenState extends State<StudioScreen>
       return;
     }
     setState(() => _celebrating = true);
+    final firstCompletion = !_editor.document.completed;
     _editor.markCompleted();
     final saved = await _save();
     if (saved && mounted) {
-      await showDialog<void>(
+      Uint8List? preview;
+      try {
+        preview = await renderPng(_editor.document, maxSide: 640);
+        await widget.store.saveThumbnail(_editor.document.id, preview);
+        await FileImage(widget.store.thumbnail(_editor.document.id)).evict();
+      } catch (_) {
+        /* Saved editable artwork still permits completion. */
+      }
+      if (!mounted) return;
+      final goHome = await showDialog<bool>(
         context: context,
-        builder: (_) => CompletionDialog(document: _editor.document),
+        barrierDismissible: false,
+        builder: (_) => CompletionDialog(
+          document: _editor.document,
+          previewBytes: preview,
+          enableAudio: widget.completionAudio,
+        ),
       );
+      if (goHome == true && mounted) {
+        if (firstCompletion) {
+          await TestAds.instance.afterCompletion(_editor.document.id);
+        }
+        if (mounted) Navigator.of(context).pop(true);
+        return;
+      }
     }
     if (mounted) setState(() => _celebrating = false);
   }
@@ -434,12 +464,17 @@ class _StudioScreenState extends State<StudioScreen>
             ),
           ),
           actions: [
-            if (_editor.document.artworkId != null)
-              IconButton(
-                tooltip: 'Finish artwork',
-                onPressed: _leaving ? null : _finish,
-                icon: const Icon(Icons.celebration_outlined, color: coral),
+            TextButton.icon(
+              onPressed: _leaving || _celebrating || _exporting
+                  ? null
+                  : _finish,
+              icon: const Icon(
+                Icons.check_circle_outline_rounded,
+                color: coral,
+                size: 20,
               ),
+              label: const Text('Done'),
+            ),
             IconButton(
               tooltip: 'Undo',
               onPressed: !_leaving && !_celebrating && _editor.canUndo

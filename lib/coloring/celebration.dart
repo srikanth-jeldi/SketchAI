@@ -11,10 +11,12 @@ import '../theme.dart';
 class CompletionDialog extends StatefulWidget {
   final SketchDocument document;
   final bool enableAudio;
+  final Uint8List? previewBytes;
   const CompletionDialog({
     super.key,
     required this.document,
     this.enableAudio = true,
+    this.previewBytes,
   });
   @override
   State<CompletionDialog> createState() => _CompletionState();
@@ -29,11 +31,21 @@ class _CompletionState extends State<CompletionDialog>
   @override
   void initState() {
     super.initState();
-    _preview = renderPng(widget.document, maxSide: 640);
+    _preview = widget.previewBytes == null
+        ? renderPng(widget.document, maxSide: 640)
+        : Future.value(widget.previewBytes!);
     _animation = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2400),
-    )..forward();
+    );
+    _preview.then(
+      (_) {
+        if (mounted) _animation.forward();
+      },
+      onError: (Object _) {
+        if (mounted) _animation.forward();
+      },
+    );
     HapticFeedback.mediumImpact();
     _play();
   }
@@ -74,12 +86,12 @@ class _CompletionState extends State<CompletionDialog>
               ),
             ),
             const Text(
-              'Beautifully yours!',
+              'Artwork complete!',
               style: TextStyle(fontFamily: 'DMSerif', fontSize: 29),
             ),
             const SizedBox(height: 8),
             const Text(
-              'You brought this little world to life.',
+              'Beautifully yours. Your colours are saved.',
               textAlign: TextAlign.center,
               style: TextStyle(color: muted, fontSize: 12),
             ),
@@ -87,13 +99,58 @@ class _CompletionState extends State<CompletionDialog>
             FutureBuilder<Uint8List>(
               future: _preview,
               builder: (context, snapshot) => snapshot.hasData
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: Image.memory(
-                        snapshot.data!,
-                        height: 210,
-                        fit: BoxFit.contain,
-                      ),
+                  ? AnimatedBuilder(
+                      animation: _animation,
+                      builder: (context, _) {
+                        final t = MediaQuery.disableAnimationsOf(context)
+                            ? 1.0
+                            : _animation.value;
+                        final settle = Curves.easeOutCubic.transform(
+                          (t * 2).clamp(0, 1),
+                        );
+                        final flash = t < .14
+                            ? (1 - t / .14).clamp(0, 1).toDouble()
+                            : 0.0;
+                        return Transform.rotate(
+                          angle: (1 - settle) * -.06,
+                          child: Transform.scale(
+                            scale: .78 + .22 * settle,
+                            child: Container(
+                              padding: const EdgeInsets.fromLTRB(9, 9, 9, 20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x22000000),
+                                    blurRadius: 16,
+                                    offset: Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: Stack(
+                                children: [
+                                  Image.memory(
+                                    snapshot.data!,
+                                    height: 210,
+                                    fit: BoxFit.contain,
+                                  ),
+                                  if (flash > 0)
+                                    Positioned.fill(
+                                      child: IgnorePointer(
+                                        child: ColoredBox(
+                                          color: Colors.white.withValues(
+                                            alpha: flash,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     )
                   : const SizedBox(
                       height: 120,
@@ -108,7 +165,7 @@ class _CompletionState extends State<CompletionDialog>
             ),
             const SizedBox(height: 12),
             const Text(
-              'Saved in your gallery',
+              'Saved on this device · find it on Home',
               style: TextStyle(color: muted, fontSize: 11),
             ),
             Row(
@@ -141,10 +198,14 @@ class _CompletionState extends State<CompletionDialog>
             SizedBox(
               width: double.infinity,
               child: GradientButton(
-                label: 'Back to my artwork',
-                icon: Icons.favorite_border_rounded,
-                onTap: () => Navigator.pop(context),
+                label: 'Back to Home',
+                icon: Icons.home_rounded,
+                onTap: () => Navigator.pop(context, true),
               ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Keep painting'),
             ),
           ],
         ),

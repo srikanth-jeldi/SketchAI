@@ -48,7 +48,9 @@ void main() {
             (call) async => directory.path,
           );
       clearUnusedArtwork();
-      await tester.pumpWidget(SketchoraApp(storeLoader:() async => _IdleStore(directory)));
+      await tester.pumpWidget(
+        SketchoraApp(storeLoader: () async => _IdleStore(directory)),
+      );
       await tester.runAsync(() async {
         await Future<void>.delayed(const Duration(milliseconds: 200));
       });
@@ -81,5 +83,5 @@ void main() {
 class _IdleStore extends SketchStore {
   _IdleStore(super.directory);
   @override
-  Future<SketchLoadResult> loadAll() async => const SketchLoadResult([],0,0);
+  Future<SketchLoadResult> loadAll() async => const SketchLoadResult([], 0, 0);
 }

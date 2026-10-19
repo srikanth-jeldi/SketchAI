@@ -1,7 +1,7 @@
 name: sketchora
 description: "Sketchora — a quiet space for bold ideas. Offline sketching and painting."
 publish_to: 'none'
-version: 0.5.0+7
+version: 0.6.0+8
 
 environment:
   sdk: ^3.13.3
@@ -12,6 +12,7 @@ dependencies:
   path_provider: ^2.1.5
   share_plus: ^13.3.1
   audioplayers: ^6.8.0
+  google_mobile_ads: ^9.1.0
 
 dev_dependencies:
   flutter_test:

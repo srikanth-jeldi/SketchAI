@@ -351,7 +351,7 @@ void main() {
         home: Builder(
           builder: (context) => Scaffold(
             body: TextButton(
-              onPressed: () => showDialog<void>(
+              onPressed: () => showDialog<bool>(
                 context: context,
                 builder: (_) =>
                     CompletionDialog(document: doc, enableAudio: false),
@@ -368,10 +368,10 @@ void main() {
       () => Future<void>.delayed(const Duration(milliseconds: 100)),
     );
     await tester.pump();
-    expect(find.text('Beautifully yours!'), findsOneWidget);
+    expect(find.text('Artwork complete!'), findsOneWidget);
     await tester.tap(find.text('Celebrate again'));
     await tester.pump(const Duration(seconds: 3));
-    await tester.tap(find.text('Back to my artwork'));
+    await tester.tap(find.text('Keep painting'));
     await tester.pumpAndSettle();
     expect(find.text('Finish'), findsOneWidget);
   });

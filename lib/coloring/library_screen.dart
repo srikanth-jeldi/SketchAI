@@ -9,7 +9,8 @@ import 'artwork_view.dart';
 
 class ArtLibraryScreen extends StatefulWidget {
   final SketchStore store;
-  const ArtLibraryScreen({super.key, required this.store});
+  final VoidCallback? onCompleted;
+  const ArtLibraryScreen({super.key, required this.store, this.onCompleted});
   @override
   State<ArtLibraryScreen> createState() => _ArtLibraryState();
 }
@@ -84,13 +85,20 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
       );
       await widget.store.save(doc);
       if (mounted) {
-        await Navigator.push<void>(
+        final completed = await Navigator.push<bool>(
           context,
           MaterialPageRoute(
             builder: (_) =>
                 ArtworkStudioGate(document: doc, store: widget.store),
           ),
         );
+        if (completed == true && mounted) {
+          if (widget.onCompleted != null) {
+            widget.onCompleted!();
+          } else if (Navigator.canPop(context)) {
+            Navigator.pop(context, true);
+          }
+        }
       }
     } catch (_) {
       if (mounted) {

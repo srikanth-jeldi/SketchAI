@@ -10,6 +10,8 @@ import '../storage/local_diagnostics.dart';
 
 import 'package:share_plus/share_plus.dart';
 
+import '../ads/test_ads.dart';
+
 class GalleryScreen extends StatefulWidget {
   final SketchStore store;
   const GalleryScreen({super.key, required this.store});
@@ -53,13 +55,20 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Future<void> _open(SketchDocument doc) async {
-    await Navigator.push<void>(
+    final completed = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (_) => ArtworkStudioGate(document: doc, store: widget.store),
       ),
     );
+    if (completed == true && mounted) setState(() => _galleryOnly = false);
     await _load();
+  }
+
+  void _returnHome() {
+    if (!mounted) return;
+    setState(() => _galleryOnly = false);
+    _load();
   }
 
   Future<void> _create() async {
@@ -132,10 +141,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Future<void> _colourDesign() async {
-    await Navigator.push<void>(
+    final completed = await Navigator.push<bool>(
       context,
       MaterialPageRoute(builder: (_) => ArtLibraryScreen(store: widget.store)),
     );
+    if (completed == true) _returnHome();
     await _load();
   }
 
@@ -218,29 +228,35 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    bottomNavigationBar: NavigationBar(
-      selectedIndex: _galleryOnly ? 1 : 0,
-      onDestinationSelected: (index) {
-        setState(() => _galleryOnly = index == 1);
-        if (index == 0) _load();
-      },
-      height: 68,
-      backgroundColor: paper,
-      destinations: const [
-        NavigationDestination(
-          icon: Icon(Icons.home_outlined),
-          selectedIcon: Icon(Icons.home_rounded),
-          label: 'Home',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.photo_library_outlined),
-          selectedIcon: Icon(Icons.photo_library_rounded),
-          label: 'Gallery',
+    bottomNavigationBar: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const HomeTestBanner(),
+        NavigationBar(
+          selectedIndex: _galleryOnly ? 1 : 0,
+          onDestinationSelected: (index) {
+            setState(() => _galleryOnly = index == 1);
+            if (index == 0) _load();
+          },
+          height: 68,
+          backgroundColor: paper,
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home_rounded),
+              label: 'Home',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.photo_library_outlined),
+              selectedIcon: Icon(Icons.photo_library_rounded),
+              label: 'Gallery',
+            ),
+          ],
         ),
       ],
     ),
     body: _galleryOnly
-        ? ArtLibraryScreen(store: widget.store)
+        ? ArtLibraryScreen(store: widget.store, onCompleted: _returnHome)
         : SafeArea(
             child: RefreshIndicator(
               onRefresh: _load,
@@ -291,7 +307,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                                       context: context,
                                       applicationName: 'Sketchora',
                                       applicationVersion:
-                                          '0.5.0 · Illustrated collection',
+                                          '0.6.0 · Completion & test ads',
                                       applicationIcon: const BrandMark(
                                         size: 56,
                                       ),

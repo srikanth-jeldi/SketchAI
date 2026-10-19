@@ -9,6 +9,7 @@ import 'screens/gallery_screen.dart';
 import 'storage/sketch_store.dart';
 import 'theme.dart';
 import 'coloring/art_catalog.dart';
+import 'ads/test_ads.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,17 +34,18 @@ void main() {
     ),
   );
   runApp(const SketchoraApp());
+  unawaited(TestAds.instance.initialize());
 }
 
 class SketchoraApp extends StatelessWidget {
   final Future<SketchStore> Function()? storeLoader;
-  const SketchoraApp({super.key,this.storeLoader});
+  const SketchoraApp({super.key, this.storeLoader});
   @override
   Widget build(BuildContext context) => MaterialApp(
     title: 'Sketchora',
     debugShowCheckedModeBanner: false,
     theme: sketchoraTheme(),
-    home: _BootScreen(storeLoader:storeLoader),
+    home: _BootScreen(storeLoader: storeLoader),
   );
 }
 
