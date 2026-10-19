@@ -50,6 +50,7 @@ android {
     buildTypes {
         release {
             signingConfig = if (testSigning) signingConfigs.getByName("debug") else signingConfigs.findByName("upload")
+            proguardFiles("proguard-rules.pro")
         }
     }
 }
