@@ -11,6 +11,8 @@ import '../drawing/editor.dart';
 import '../drawing/renderer.dart';
 import '../storage/sketch_store.dart';
 import '../theme.dart';
+import '../coloring/art_catalog.dart';
+import '../coloring/celebration.dart';
 
 const palette = [
   Color(0xFF292034),
@@ -42,10 +44,14 @@ class _StudioScreenState extends State<StudioScreen>
   bool _hand = false, _leaving = false, _exporting = false;
   String _saveStatus = 'Saved on device';
   int _revision = 0;
+  bool _fillMode = false, _celebrating = false;
+  int _lastFilledCount = 0;
   @override
   void initState() {
     super.initState();
     _editor = DrawingEditor(widget.document);
+    _fillMode = widget.document.artworkId != null;
+    _lastFilledCount = widget.document.regionColors.length;
     _editor.addListener(_changed);
     WidgetsBinding.instance.addObserver(this);
   }
@@ -55,6 +61,96 @@ class _StudioScreenState extends State<StudioScreen>
     setState(() => _saveStatus = 'Saving…');
     _saveTimer?.cancel();
     _saveTimer = Timer(const Duration(milliseconds: 650), _save);
+    final doc = _editor.document;
+    if (doc.artworkId != null) {
+      final total = ArtCatalog.design(doc.artworkId!).regions.length;
+      final justFinished =
+          _lastFilledCount < total &&
+          doc.regionColors.length >= total &&
+          !doc.completed;
+      _lastFilledCount = doc.regionColors.length;
+      if (justFinished && !_celebrating) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _finish();
+        });
+      }
+    }
+  }
+
+  Future<void> _finish() async {
+    if (_celebrating || _leaving) return;
+    if (_editor.document.regionColors.isEmpty &&
+        _editor.document.strokeCount == 0) {
+      _snack('Add a little colour first, then celebrate your artwork.');
+      return;
+    }
+    setState(() => _celebrating = true);
+    _editor.markCompleted();
+    final saved = await _save();
+    if (saved && mounted) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => CompletionDialog(document: _editor.document),
+      );
+    }
+    if (mounted) setState(() => _celebrating = false);
+  }
+
+  void _showReference() {
+    final artId = _editor.document.artworkId!;
+    Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (context) => Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              tooltip: 'Back to painting',
+              icon: const Icon(Icons.close_rounded),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: const Text('Colour inspiration'),
+          ),
+          body: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: InteractiveViewer(
+                    minScale: .7,
+                    maxScale: 5,
+                    child: Center(
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: CustomPaint(painter: ArtworkPainter(artId)),
+                      ),
+                    ),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text(
+                    'Follow this palette, or make it completely yours.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: muted),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close_fullscreen_rounded),
+                      label: const Text('Minimise · back to painting'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Future<bool> _save() async {
@@ -81,7 +177,7 @@ class _StudioScreenState extends State<StudioScreen>
   }
 
   Future<void> _leave() async {
-    if (_leaving || _exporting) return;
+    if (_leaving || _exporting || _celebrating) return;
     setState(() => _leaving = true);
     _saveTimer?.cancel();
     final saved = await _save();
@@ -111,13 +207,13 @@ class _StudioScreenState extends State<StudioScreen>
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(message)));
   Future<void> _rename() async {
-    if (_leaving) return;
+    if (_leaving || _celebrating) return;
     final title = await requestName(context, _editor.document.title);
     if (title != null && mounted) _editor.rename(title);
   }
 
   Future<void> _export() async {
-    if (_exporting || _leaving) return;
+    if (_exporting || _leaving || _celebrating) return;
     final transparent = await showModalBottomSheet<bool>(
       context: context,
       showDragHandle: true,
@@ -213,9 +309,15 @@ class _StudioScreenState extends State<StudioScreen>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear this layer?'),
-        content: const Text(
-          'Other layers stay as they are. You can undo this change.',
+        title: Text(
+          _editor.document.artworkId == null
+              ? 'Clear this layer?'
+              : 'Reset this colouring?',
+        ),
+        content: Text(
+          _editor.document.artworkId == null
+              ? 'Other layers stay as they are. You can undo this change.'
+              : 'Colours and brush marks will be cleared. The outline stays. You can undo this change.',
         ),
         actions: [
           TextButton(
@@ -229,7 +331,13 @@ class _StudioScreenState extends State<StudioScreen>
         ],
       ),
     );
-    if (confirmed == true && mounted) _editor.clearLayer();
+    if (confirmed == true && mounted) {
+      if (_editor.document.artworkId == null) {
+        _editor.clearLayer();
+      } else {
+        _editor.resetColoring();
+      }
+    }
   }
 
   void _showLayers() => showModalBottomSheet<void>(
@@ -286,14 +394,24 @@ class _StudioScreenState extends State<StudioScreen>
             ),
           ),
           actions: [
+            if (_editor.document.artworkId != null)
+              IconButton(
+                tooltip: 'Finish artwork',
+                onPressed: _leaving ? null : _finish,
+                icon: const Icon(Icons.celebration_outlined, color: coral),
+              ),
             IconButton(
               tooltip: 'Undo',
-              onPressed: !_leaving && _editor.canUndo ? _editor.undo : null,
+              onPressed: !_leaving && !_celebrating && _editor.canUndo
+                  ? _editor.undo
+                  : null,
               icon: const Icon(Icons.undo_rounded),
             ),
             IconButton(
               tooltip: 'Redo',
-              onPressed: !_leaving && _editor.canRedo ? _editor.redo : null,
+              onPressed: !_leaving && !_celebrating && _editor.canRedo
+                  ? _editor.redo
+                  : null,
               icon: const Icon(Icons.redo_rounded),
             ),
             Padding(
@@ -315,7 +433,7 @@ class _StudioScreenState extends State<StudioScreen>
         body: SafeArea(
           top: false,
           child: AbsorbPointer(
-            absorbing: _leaving,
+            absorbing: _leaving || _celebrating,
             child: Column(
               children: [
                 Padding(
@@ -342,7 +460,11 @@ class _StudioScreenState extends State<StudioScreen>
                                 const SizedBox(width: 5),
                                 Flexible(
                                   child: Text(
-                                    _leaving ? 'Finishing up…' : _saveStatus,
+                                    _leaving
+                                        ? 'Finishing up…'
+                                        : _editor.document.artworkId == null
+                                        ? _saveStatus
+                                        : '${_editor.document.completed ? 'Completed · ' : ''}${_editor.document.regionColors.length}/${ArtCatalog.design(_editor.document.artworkId!).regions.length} areas · $_saveStatus',
                                     style: const TextStyle(
                                       fontSize: 10,
                                       color: muted,
@@ -383,14 +505,73 @@ class _StudioScreenState extends State<StudioScreen>
                           child: _tools(vertical: true),
                         ),
                       Expanded(
-                        child: DrawingCanvas(
-                          editor: _editor,
-                          controller: _canvas,
-                          brush: _brush,
-                          color: _color,
-                          width: _width,
-                          opacity: _opacity,
-                          handMode: _hand,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            DrawingCanvas(
+                              editor: _editor,
+                              controller: _canvas,
+                              brush: _brush,
+                              color: _color,
+                              width: _width,
+                              opacity: _opacity,
+                              handMode: _hand,
+                              fillMode: _fillMode,
+                            ),
+                            if (_editor.document.artworkId != null)
+                              Positioned(
+                                top: 12,
+                                right: 12,
+                                child: Semantics(
+                                  button: true,
+                                  label: 'Open full colour sample',
+                                  child: Material(
+                                    color: Colors.white,
+                                    elevation: 0,
+                                    borderRadius: BorderRadius.circular(14),
+                                    clipBehavior: Clip.antiAlias,
+                                    child: InkWell(
+                                      onTap: _showReference,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(7),
+                                        child: Column(
+                                          children: [
+                                            SizedBox(
+                                              width: 74,
+                                              height: 74,
+                                              child: CustomPaint(
+                                                painter: ArtworkPainter(
+                                                  _editor.document.artworkId!,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  'Sample',
+                                                  style: TextStyle(
+                                                    color: violet,
+                                                    fontSize: 10,
+                                                  ),
+                                                ),
+                                                SizedBox(width: 4),
+                                                Icon(
+                                                  Icons.open_in_full_rounded,
+                                                  size: 11,
+                                                  color: violet,
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     ],
@@ -502,6 +683,8 @@ class _StudioScreenState extends State<StudioScreen>
                         child: Text(
                           !_editor.document.activeLayer.visible
                               ? 'This layer is hidden. Show it in Layers to draw.'
+                              : _fillMode && !_hand
+                              ? 'Tap a closed area to fill · sample is only a guide'
                               : _hand
                               ? 'Drag to move your canvas · pinch to zoom'
                               : 'One finger to draw · two fingers to move & zoom',
@@ -521,6 +704,16 @@ class _StudioScreenState extends State<StudioScreen>
 
   Widget _tools({required bool vertical}) {
     final children = <Widget>[
+      if (_editor.document.artworkId != null)
+        _Tool(
+          icon: Icons.format_color_fill_rounded,
+          label: 'Fill',
+          selected: _fillMode && !_hand,
+          onTap: () => setState(() {
+            _fillMode = true;
+            _hand = false;
+          }),
+        ),
       for (final item in [
         (BrushKind.pen, Icons.edit_rounded, 'Pen'),
         (BrushKind.pencil, Icons.draw_outlined, 'Pencil'),
@@ -530,10 +723,11 @@ class _StudioScreenState extends State<StudioScreen>
         _Tool(
           icon: item.$2,
           label: item.$3,
-          selected: !_hand && _brush == item.$1,
+          selected: !_hand && !_fillMode && _brush == item.$1,
           onTap: () => setState(() {
             _brush = item.$1;
             _hand = false;
+            _fillMode = false;
           }),
         ),
       _Tool(
@@ -552,9 +746,18 @@ class _StudioScreenState extends State<StudioScreen>
     ];
     return vertical
         ? SingleChildScrollView(child: Column(children: children))
-        : Row(
+        : _editor.document.artworkId == null
+        ? Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: children.map((child) => Expanded(child: child)).toList(),
+          )
+        : SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: children
+                  .map((child) => SizedBox(width: 52, child: child))
+                  .toList(),
+            ),
           );
   }
 }

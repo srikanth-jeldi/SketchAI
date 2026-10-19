@@ -1,4 +1,4 @@
-param([string]$FlutterRoot, [string]$JavaHome, [switch]$SkipBuild)
+param([string]$FlutterRoot, [string]$JavaHome, [switch]$SkipBuild, [switch]$Release)
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $taskRoot
@@ -20,7 +20,9 @@ Invoke-FlutterCheck -Arguments @('pub', 'get')
 Invoke-FlutterCheck -Arguments @('analyze')
 Invoke-FlutterCheck -Arguments @('test', '--reporter', 'expanded')
 if (-not $SkipBuild) {
-    Invoke-FlutterCheck -Arguments @('build', 'apk', '--debug')
+    $taskMode = if ($Release) { 'release' } else { 'debug' }
+    Invoke-FlutterCheck -Arguments @('build', 'apk', "--$taskMode")
     New-Item -ItemType Directory -Force 'dist' | Out-Null
-    Copy-Item -LiteralPath 'build\app\outputs\flutter-apk\app-debug.apk' -Destination 'dist\Sketchora-0.1.0-phase1-debug.apk' -Force
+    $taskVersion = ((Select-String -Path 'pubspec.yaml' -Pattern '^version:').Line -replace '^version:\s*','').Split('+')[0]
+    Copy-Item -LiteralPath "build\app\outputs\flutter-apk\app-$taskMode.apk" -Destination "dist\Sketchora-$taskVersion-$taskMode.apk" -Force
 }

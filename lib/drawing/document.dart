@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import '../coloring/art_catalog.dart' show ArtCatalog;
+
 enum BrushKind { pen, pencil, marker, eraser }
 
 int _lastGeneratedId = 0;
@@ -110,6 +112,9 @@ class SketchDocument {
   final String activeLayerId;
   final DateTime modified;
   final List<InkLayer> layers;
+  final String? artworkId;
+  final Map<String, int> regionColors;
+  final bool completed;
   SketchDocument({
     required this.id,
     required this.title,
@@ -118,7 +123,11 @@ class SketchDocument {
     required this.activeLayerId,
     required this.modified,
     required List<InkLayer> layers,
-  }) : layers = List.unmodifiable(layers) {
+    this.artworkId,
+    Map<String, int> regionColors = const {},
+    this.completed = false,
+  }) : layers = List.unmodifiable(layers),
+       regionColors = Map.unmodifiable(regionColors) {
     if (width < 1 ||
         height < 1 ||
         width > 4096 ||
@@ -129,11 +138,18 @@ class SketchDocument {
         !layers.any((l) => l.id == activeLayerId)) {
       throw const FormatException('Invalid sketch document');
     }
+    if (artworkId != null && ArtCatalog.entry(artworkId) == null) {
+      throw const FormatException('Unknown artwork ID');
+    }
+    if (regionColors.keys.any((key) => !RegExp(r'^r\d+$').hasMatch(key))) {
+      throw const FormatException('Invalid colour region');
+    }
   }
   factory SketchDocument.create({
     String title = 'Untitled sketch',
     int width = 1200,
     int height = 1600,
+    String? artworkId,
   }) {
     final id = newSketchId();
     return SketchDocument(
@@ -144,6 +160,7 @@ class SketchDocument {
       activeLayerId: '${id}_1',
       modified: DateTime.now(),
       layers: [InkLayer(id: '${id}_1', name: 'Layer 1')],
+      artworkId: artworkId,
     );
   }
   InkLayer get activeLayer => layers.firstWhere((l) => l.id == activeLayerId);
@@ -153,6 +170,8 @@ class SketchDocument {
     List<InkLayer>? layers,
     String? activeLayerId,
     DateTime? modified,
+    Map<String, int>? regionColors,
+    bool? completed,
   }) => SketchDocument(
     id: id,
     title: title ?? this.title,
@@ -161,9 +180,15 @@ class SketchDocument {
     activeLayerId: activeLayerId ?? this.activeLayerId,
     modified: modified ?? DateTime.now(),
     layers: layers ?? this.layers,
+    artworkId: artworkId,
+    regionColors: regionColors ?? this.regionColors,
+    completed: completed ?? this.completed,
   );
   Map<String, dynamic> toJson() => {
-    'version': 1,
+    'version': artworkId == null ? 1 : 2,
+    if (artworkId != null) 'artworkId': artworkId,
+    if (artworkId != null) 'regionColors': regionColors,
+    if (artworkId != null) 'completed': completed,
     'id': id,
     'title': title,
     'width': width,
@@ -173,7 +198,7 @@ class SketchDocument {
     'layers': layers.map((l) => l.toJson()).toList(),
   };
   factory SketchDocument.fromJson(Map<String, dynamic> json) {
-    if (json['version'] != 1) {
+    if (json['version'] != 1 && json['version'] != 2) {
       throw const FormatException('Unsupported sketch version');
     }
     final id = json['id'] as String;
@@ -190,6 +215,11 @@ class SketchDocument {
       layers: (json['layers'] as List)
           .map((l) => InkLayer.fromJson(l as Map<String, dynamic>))
           .toList(),
+      artworkId: json['artworkId'] as String?,
+      regionColors: (json['regionColors'] as Map<String, dynamic>? ?? {}).map(
+        (key, value) => MapEntry(key, value as int),
+      ),
+      completed: json['completed'] as bool? ?? false,
     );
   }
 }

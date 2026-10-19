@@ -10,6 +10,35 @@ class DrawingEditor extends ChangeNotifier {
   SketchDocument get document => _document;
   bool get canUndo => _past.isNotEmpty;
   bool get canRedo => _future.isNotEmpty;
+  void fillRegion(String id, int color) {
+    if (document.artworkId == null) return;
+    final colors = Map<String, int>.of(document.regionColors);
+    if (color == 0xFFFFFFFF) {
+      if (!colors.containsKey(id)) return;
+      colors.remove(id);
+    } else {
+      if (colors[id] == color) return;
+      colors[id] = color;
+    }
+    _edit(document.copyWith(regionColors: colors, completed: false));
+  }
+
+  void markCompleted() {
+    if (document.artworkId != null && !document.completed) {
+      _edit(document.copyWith(completed: true));
+    }
+  }
+
+  void resetColoring() {
+    _edit(
+      document.copyWith(
+        regionColors: {},
+        completed: false,
+        layers: document.layers.map((l) => l.copyWith(strokes: [])).toList(),
+      ),
+    );
+  }
+
   void _edit(SketchDocument next) {
     _past.add(_document);
     if (_past.length > 60) _past.removeAt(0);

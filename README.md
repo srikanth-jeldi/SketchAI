@@ -1,5 +1,13 @@
 # Sketchora — Sketch & Paint
 
+Version 0.2.0 adds a colouring studio: 2,000 vector design variations across 10
+families, matching colour guides, tap-to-fill, 2K export, persisted progress and
+completion confetti/applause. See [colouring content and testing](docs/COLOURING_LIBRARY.md).
+
+![Colouring design families](docs/previews/colouring-designs.png)
+
+[Colouring screen preview](docs/previews/colouring-studio.png)
+
 Flutter drawing app for Android and iOS. Phase 1 is an offline testing preview
 with the approved S logo, warm ivory surfaces, violet controls and coral accents.
 
@@ -32,7 +40,7 @@ flutter test
 flutter build apk --debug
 ```
 
-App ID: `com.srikanth.sketchora`. Version: `0.1.0+1`.
+App ID: `com.srikanth.sketchora`. Version: `0.2.0+2`.
 Current project minimums: Android 7.0 (API 24), iOS 15.0.
 Machine SDK paths live in ignored `android/local.properties`.
 Use `scripts/verify.ps1` for Windows checks and APK packaging. It also directs
@@ -64,7 +72,7 @@ See [testing checklist](docs/PHASES_AND_TESTING.md) and
 [verification results](docs/VERIFICATION.md). Screenshot tests use an editable
 botanical vector fixture; the installed app starts with an empty gallery.
 
-Phase 2: import, fill, selection, transforms, canvas rotation, eyedropper,
+Phase 2: import, selection, transforms, canvas rotation, eyedropper,
 textured brushes, project backup/import and device performance tuning.
 Phase 3: optional AI refinement/colouring with original-preserving result layers.
 

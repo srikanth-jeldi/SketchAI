@@ -3,5 +3,6 @@
 *.png binary
 *.ttf binary
 *.jar binary
+*.wav binary
 # Keep third-party license text verbatim.
 assets/fonts/*OFL.txt -whitespace

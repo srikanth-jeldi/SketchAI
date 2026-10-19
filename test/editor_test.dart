@@ -86,7 +86,7 @@ void main() {
   test('malformed documents and unsupported schema are rejected', () {
     final json = SketchDocument.create().toJson();
     expect(
-      () => SketchDocument.fromJson({...json, 'version': 2}),
+      () => SketchDocument.fromJson({...json, 'version': 99}),
       throwsFormatException,
     );
     expect(

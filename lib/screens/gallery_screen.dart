@@ -5,6 +5,7 @@ import '../drawing/renderer.dart';
 import '../storage/sketch_store.dart';
 import '../theme.dart';
 import 'studio_screen.dart';
+import '../coloring/library_screen.dart';
 
 class GalleryScreen extends StatefulWidget {
   final SketchStore store;
@@ -127,6 +128,14 @@ class _GalleryScreenState extends State<GalleryScreen> {
     }
   }
 
+  Future<void> _colourDesign() async {
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute(builder: (_) => ArtLibraryScreen(store: widget.store)),
+    );
+    await _load();
+  }
+
   void _snack(String message) =>
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(message)));
@@ -149,6 +158,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
           activeLayerId: doc.activeLayerId,
           modified: DateTime.now(),
           layers: doc.layers,
+          artworkId: doc.artworkId,
+          regionColors: doc.regionColors,
+          completed: doc.completed,
         );
         await widget.store.save(copy);
         await widget.store.saveThumbnail(
@@ -251,7 +263,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                               onPressed: () => showAboutDialog(
                                 context: context,
                                 applicationName: 'Sketchora',
-                                applicationVersion: '0.1.0 · Phase 1 preview',
+                                applicationVersion: '0.2.0 · Colouring studio',
                                 applicationIcon: const BrandMark(size: 56),
                                 children: [
                                   const Text(
@@ -286,9 +298,28 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           SizedBox(
                             width: double.infinity,
                             child: GradientButton(
-                              label: _creating ? 'Creating…' : 'New canvas',
+                              label: _creating
+                                  ? 'Creating…'
+                                  : 'Free draw · blank canvas',
                               icon: Icons.add_rounded,
                               onTap: _creating ? null : _create,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: _colourDesign,
+                              icon: const Icon(Icons.palette_outlined),
+                              label: const Text(
+                                'Colour a design · 2,000 to explore',
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(48, 52),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 20),

@@ -1,5 +1,9 @@
 # Phases and testing checklist
 
+The 0.2.0 colouring expansion is implemented. See [colouring library and
+acceptance checks](COLOURING_LIBRARY.md) for the 2,000-variation catalogue,
+matching reference, fill, progress, reset and completion flow.
+
 ## Phase 1A — canvas/UI
 
 - Open Home/Gallery and new portrait/square/landscape canvases.
@@ -41,7 +45,7 @@
 
 ## Phase 2
 
-Image import, fill, selection/transforms, rotation, eyedropper, textured
+Image import, selection/transforms, rotation, eyedropper, textured
 watercolour/pastel, brush presets, project backups and broader device tuning.
 Learn/Settings navigation will appear when useful working screens exist.
 

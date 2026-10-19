@@ -1,5 +1,42 @@
 # Phase 1 verification — 2026-10-19
 
+## 0.2.0 colouring update
+
+- Final analyzer: no issues found.
+- **24 distinct tests passed**: the full 23-test regression suite, followed by a
+  7-test colouring rerun including one additional cache/pixel test. All prior
+  free-drawing regressions remain covered.
+- All 2,000 templates: unique geometry fingerprints, 200 designs per family,
+  closed fill regions, unique region IDs and page bounds checked.
+- Exact 2048×2048 PNG output verified by decoding a rendered export.
+- Region fill/undo/reset, two-finger cancellation during fill, v2 JSON round trip,
+  and mixed v1 free-drawing/v2 colouring files verified.
+- Library → start colouring → enlarge sample → minimise → same session tested.
+- Completion visual replay/dismiss tested with audio disabled; the original
+  applause asset and native playback integration are included, but physical
+  audio playback/mute/interruptions still need device acceptance.
+- Colouring library, outline, reference and studio previews rendered/inspected.
+- Android optimized release build succeeded and the packaged APK was verified.
+- No new emulator or physical-phone validation was counted for this update.
+  iOS source is prepared; Mac/Xcode/device and Apple Pencil checks remain pending.
+
+The catalogue contains **2,000 procedural vector variations of 10 original
+families**. They are not 2,000 separately hand-drawn illustrations. Automated
+geometry checks do not substitute for editorial review of every variation.
+
+### Packaged 0.2.0 APK
+
+- File: `dist/Sketchora-0.2.0-colouring.apk`.
+- Size: 56,345,114 bytes (53.7 MiB).
+- SHA-256: `663D2059F376D31EB96F4A2B086CBEC9CBD2688B39081471C7CEC3F89BD2F384`.
+- ID `com.srikanth.sketchora`, version `0.2.0`, version code `2`.
+- Minimum API 24, target/compile API 36; arm64-v8a/armeabi-v7a/x86_64.
+- APK signature verification passed. Signing certificate matches 0.1.0, allowing
+  an update installation without uninstalling and removing existing sketches.
+- Internal debug signing only; not a store-submission artifact.
+
+## Historical 0.1.0 baseline
+
 ## Completed
 
 - Flutter 3.47.4 / Dart 3.13.3; Android SDK 36; JDK 17.

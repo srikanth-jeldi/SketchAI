@@ -1,0 +1,292 @@
+import 'package:flutter/material.dart';
+
+import '../drawing/document.dart';
+import '../screens/studio_screen.dart';
+import '../storage/sketch_store.dart';
+import '../theme.dart';
+import 'art_catalog.dart';
+
+class ArtLibraryScreen extends StatefulWidget {
+  final SketchStore store;
+  const ArtLibraryScreen({super.key, required this.store});
+  @override
+  State<ArtLibraryScreen> createState() => _ArtLibraryState();
+}
+
+class _ArtLibraryState extends State<ArtLibraryScreen> {
+  int? _category;
+  String _query = '';
+  int _visible = 30;
+  bool _opening = false;
+  Future<void> _open(ArtEntry entry) async {
+    if (_opening) return;
+    final start = await showModalBottomSheet<bool>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  entry.title,
+                  style: const TextStyle(fontFamily: 'DMSerif', fontSize: 28),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 230,
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: CustomPaint(painter: ArtworkPainter(entry.id)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'A little inspiration. Make the colours your own.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: muted),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Tap closed areas to fill, or paint with a brush. The small colour guide can be opened any time.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: muted),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: GradientButton(
+                    label: 'Start colouring',
+                    icon: Icons.palette_outlined,
+                    onTap: () => Navigator.pop(context, true),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (start != true || !mounted) return;
+    setState(() => _opening = true);
+    try {
+      final doc = SketchDocument.create(
+        title: entry.title,
+        width: 2048,
+        height: 2048,
+        artworkId: entry.id,
+      );
+      await widget.store.save(doc);
+      if (mounted) {
+        await Navigator.push<void>(
+          context,
+          MaterialPageRoute(
+            builder: (_) => StudioScreen(document: doc, store: widget.store),
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Could not open this design. Check storage and try again.',
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _opening = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final entries =
+        List.generate(2000, (i) => ArtCatalog.entries[(i % 10) * 200 + i ~/ 10])
+            .where(
+              (entry) =>
+                  (_category == null || entry.family == _category) &&
+                  '${entry.title} ${entry.category}'.toLowerCase().contains(
+                    _query.toLowerCase(),
+                  ),
+            )
+            .toList();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Colour a little joy',
+          style: TextStyle(fontFamily: 'DMSerif', fontSize: 27),
+        ),
+      ),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '2,000 original vector designs · 2K export',
+                    style: TextStyle(color: muted, fontSize: 12),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.search_rounded),
+                      hintText: 'Flowers, cats, little homes…',
+                    ),
+                    onChanged: (value) => setState(() {
+                      _query = value;
+                      _visible = 30;
+                    }),
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    height: 46,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: const Text('All'),
+                            selected: _category == null,
+                            onSelected: (_) => setState(() {
+                              _category = null;
+                              _visible = 30;
+                            }),
+                          ),
+                        ),
+                        for (var i = 0; i < artCategories.length; i++)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: ChoiceChip(
+                              label: Text(artCategories[i]),
+                              selected: _category == i,
+                              onSelected: (_) => setState(() {
+                                _category = i;
+                                _visible = 30;
+                              }),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    '${entries.length} designs · choose your favourite',
+                    style: const TextStyle(color: muted, fontSize: 12),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+          if (entries.isEmpty)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(32),
+                child: Text('No designs found. Try another category or name.'),
+              ),
+            ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            sliver: SliverLayoutBuilder(
+              builder: (context, constraints) => SliverGrid(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: constraints.crossAxisExtent > 800
+                      ? 4
+                      : constraints.crossAxisExtent > 550
+                      ? 3
+                      : 2,
+                  crossAxisSpacing: 14,
+                  mainAxisSpacing: 14,
+                  childAspectRatio: .80,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final entry = entries[index];
+                    return Material(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: _opening ? null : () => _open(entry),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(10),
+                                child: SizedBox.expand(
+                                  child: CustomPaint(
+                                    painter: ArtworkPainter(entry.id),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    entry.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${entry.category} · ${entry.difficulty}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: muted,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  childCount: entries.length < _visible
+                      ? entries.length
+                      : _visible,
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: entries.length > _visible
+                  ? OutlinedButton(
+                      onPressed: () => setState(() => _visible += 30),
+                      child: const Text('Discover more designs'),
+                    )
+                  : const Center(
+                      child: Text(
+                        'Your colours. Your imagination.',
+                        style: TextStyle(color: muted, fontSize: 12),
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

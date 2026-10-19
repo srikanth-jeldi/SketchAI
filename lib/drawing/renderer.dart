@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import 'document.dart';
+import '../coloring/art_catalog.dart';
 
 void paintStroke(Canvas canvas, InkStroke stroke) {
   if (stroke.points.isEmpty) return;
@@ -94,6 +95,43 @@ void paintStroke(Canvas canvas, InkStroke stroke) {
 /// A retained picture per layer avoids reconstructing old paths on pointer moves.
 class DrawingRenderCache {
   final Map<String, ({InkLayer layer, ui.Picture picture})> _entries = {};
+  String? _artId;
+  ui.Picture? _artBase, _artLines;
+  Map<String, int>? _artColors;
+  ui.Picture artPicture(SketchDocument doc, {bool outlines = false}) {
+    if (_artId != doc.artworkId) {
+      _artBase?.dispose();
+      _artLines?.dispose();
+      _artBase = null;
+      _artLines = null;
+      _artColors = null;
+      _artId = doc.artworkId;
+    }
+    if (outlines && _artLines != null) return _artLines!;
+    if (!outlines &&
+        _artBase != null &&
+        identical(_artColors, doc.regionColors)) {
+      return _artBase!;
+    }
+    final recorder = ui.PictureRecorder();
+    paintArt(
+      Canvas(recorder),
+      ArtCatalog.design(doc.artworkId!),
+      colors: doc.regionColors,
+      fills: !outlines,
+      outlines: outlines,
+    );
+    final picture = recorder.endRecording();
+    if (outlines) {
+      _artLines = picture;
+    } else {
+      _artBase?.dispose();
+      _artBase = picture;
+      _artColors = doc.regionColors;
+    }
+    return picture;
+  }
+
   ui.Picture picture(InkLayer layer) {
     final entry = _entries[layer.id];
     if (entry != null && identical(entry.layer.strokes, layer.strokes)) {
@@ -118,6 +156,8 @@ class DrawingRenderCache {
   }
 
   void dispose() {
+    _artBase?.dispose();
+    _artLines?.dispose();
     for (final entry in _entries.values) {
       entry.picture.dispose();
     }
@@ -141,6 +181,13 @@ void paintDocument(
   canvas.save();
   canvas.clipRect(bounds);
   if (paper) canvas.drawRect(bounds, Paint()..color = Colors.white);
+  final artwork = ArtCatalog.entry(doc.artworkId);
+  if (artwork != null) {
+    canvas.save();
+    canvas.scale(doc.width / 1000, doc.height / 1000);
+    canvas.drawPicture(cache.artPicture(doc));
+    canvas.restore();
+  }
   for (final layer in doc.layers) {
     if (!layer.visible || layer.opacity <= 0) continue;
     // Each layer is isolated: an eraser never punches through lower layers.
@@ -152,6 +199,12 @@ void paintDocument(
     if (layer.id == doc.activeLayerId && live != null) {
       paintStroke(canvas, live);
     }
+    canvas.restore();
+  }
+  if (artwork != null) {
+    canvas.saveLayer(bounds, Paint()..blendMode = BlendMode.multiply);
+    canvas.scale(doc.width / 1000, doc.height / 1000);
+    canvas.drawPicture(cache.artPicture(doc, outlines: true));
     canvas.restore();
   }
   canvas.restore();

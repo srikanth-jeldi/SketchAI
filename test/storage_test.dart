@@ -15,6 +15,36 @@ void main() {
     await directory.delete(recursive: true);
   });
   test(
+    'colouring progress and completion persist on disk beside legacy sketches',
+    () async {
+      final legacy = SketchDocument.create(title: 'Free drawing');
+      final coloring =
+          SketchDocument.create(
+            title: 'Butterfly',
+            width: 2048,
+            height: 2048,
+            artworkId: 'art_1_42',
+          ).copyWith(
+            regionColors: {'r0': 0xFF8050EF, 'r3': 0xFFFF786B},
+            completed: true,
+          );
+      await store.save(legacy);
+      await store.save(coloring);
+      final loaded = await store.loadAll();
+      expect(loaded.documents.length, 2);
+      final restored = loaded.documents.firstWhere(
+        (doc) => doc.artworkId != null,
+      );
+      expect(restored.regionColors, coloring.regionColors);
+      expect(restored.completed, true);
+      expect(restored.width, 2048);
+      expect(
+        loaded.documents.firstWhere((doc) => doc.id == legacy.id).artworkId,
+        isNull,
+      );
+    },
+  );
+  test(
     'queued writes retain latest revision and newest sketches sort first',
     () async {
       final first = SketchDocument.create(title: 'First');

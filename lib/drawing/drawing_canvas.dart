@@ -7,6 +7,7 @@ import '../theme.dart';
 import 'document.dart';
 import 'editor.dart';
 import 'renderer.dart';
+import '../coloring/art_catalog.dart';
 
 class DrawingCanvasController extends ChangeNotifier {
   VoidCallback? _reset;
@@ -20,6 +21,7 @@ class DrawingCanvas extends StatefulWidget {
   final Color color;
   final double width, opacity;
   final bool handMode;
+  final bool fillMode;
   const DrawingCanvas({
     super.key,
     required this.editor,
@@ -29,6 +31,7 @@ class DrawingCanvas extends StatefulWidget {
     required this.width,
     required this.opacity,
     required this.handMode,
+    this.fillMode = false,
   });
   @override
   State<DrawingCanvas> createState() => _DrawingCanvasState();
@@ -44,6 +47,7 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
   bool _gesture = false;
   int? _drawingPointer;
   String? _strokeLayer;
+  Offset? _fillStart;
   @override
   void initState() {
     super.initState();
@@ -54,6 +58,7 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
   void _documentChanged() {
     // Layer/history changes cancel uncommitted input.
     _scene.live = null;
+    _fillStart = null;
     _drawingPointer = null;
     _cache.prune(widget.editor.document);
     _scene.changed();
@@ -112,6 +117,10 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
     }
     _drawingPointer = event.pointer;
     _strokeLayer = doc.activeLayerId;
+    if (widget.fillMode && doc.artworkId != null) {
+      _fillStart = event.localPosition;
+      return;
+    }
     _scene.live = InkStroke.live(
       points: [InkPoint(point, _pressure(event))],
       color: widget.color.toARGB32(),
@@ -152,6 +161,20 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
   }
 
   void _up(PointerEvent event, {bool cancel = false}) {
+    if (_drawingPointer == event.pointer &&
+        _fillStart != null &&
+        !cancel &&
+        !_gesture &&
+        (event.localPosition - _fillStart!).distance < 12) {
+      final doc = widget.editor.document;
+      final p = _toDocument(event.localPosition);
+      final region = ArtCatalog.design(doc.artworkId!)
+          .regionAt(Offset(p.dx * 1000 / doc.width, p.dy * 1000 / doc.height));
+      _fillStart = null;
+      if (region != null) {
+        widget.editor.fillRegion(region.id, widget.color.toARGB32());
+      }
+    }
     if (_drawingPointer == event.pointer) {
       if (!cancel) _append(event);
       final live = _scene.live;
@@ -172,6 +195,7 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
       }
     }
     _pointers.remove(event.pointer);
+    _fillStart = null;
     if (_pointers.isEmpty) {
       _gesture = false;
     } else if (_gesture && (_pointers.length >= 2 || widget.handMode)) {
