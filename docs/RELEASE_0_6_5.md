@@ -23,3 +23,12 @@ Colouring component maps are precomputed from the original PNGs with the origina
 Both phone APKs are strictly below 20,000,000 bytes. Compared with the previous 121,647,904-byte universal APK, ARM64 is 83.7% smaller. The all-architecture AAB upload file is larger than a per-device APK; it must not be advertised as a sub-20-MB upload bundle or installed footprint.
 
 The earlier Android startup R8 fix and AdMob consent gate remain. AdMob privacy messages are still a server-side setup requirement; a successful build does not confirm ads are serving. This release is not publicly rolled out.
+
+
+## Final delivery verification
+
+- Signed AAB: 66,186,907 bytes (all architectures), SHA256 `01137F3E79A1166FA0522D3874FE1EF25A3B7538E1EB7AEB1F19AC49C15940E8`.
+- Google bundletool 1.18.1 ARM64/API36/en/420dpi estimate: **19,088,108 download bytes (19.09 MB)**. Generated APK files together occupy 21,743,340 bytes; installed size is larger. Other devices/locales can differ.
+- ARM64 local demo APK SHA256: `2B971811B69B6D789F1EBBE8EB29A9EEE76E484307AC145EE0A0A7E1C4A5B254`.
+- Emulator installation succeeded. The release displayed its main activity, `libflutter.so` loaded successfully, and the process remained alive through the subsequent idle check. No `FATAL EXCEPTION`, `UnsatisfiedLinkError`, or `dlopen failed` in the captured log. Emulator launch was slow under host memory pressure; this is not a physical-phone performance measurement.
+- Log: ignored `output/final-startup-0.6.5.txt`. The task emulator was stopped afterward.
