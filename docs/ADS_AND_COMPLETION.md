@@ -1,3 +1,34 @@
+# Sketluma AdMob configuration — 2026-10-20
+
+Created Android units in AdMob under Sketluma: Sketch & Paint:
+- App ID: `ca-app-pub-9061518700917881~2013058778`
+- Home Gallery Banner: `ca-app-pub-9061518700917881/8725631776`
+- Artwork Completion Interstitial: `ca-app-pub-9061518700917881/9759511842`
+
+`SketlumaAdIds` configures both existing placements. Android release manifest
+uses the Sketluma app ID; debug/profile uses Google's demo app ID.
+Unit selection requires Android + release mode + `SKETLUMA_LIVE_ADS=true`.
+The flag defaults to false, so ordinary builds still request demo units.
+Debug/profile and iOS always use demo units even if the flag is supplied.
+No new ad placements or frequency changes were made. Existing child/G-rated,
+non-personalized requests and removed advertising permissions remain intact.
+
+The 0.6.4 store AAB is built with `--dart-define=SKETLUMA_LIVE_ADS=true` at the
+owner's request after verifying all three IDs in AdMob. The separate test APK
+keeps demo ad units. UMP updates consent requirements, handles required forms,
+and checks `canRequestAds` before Mobile Ads initialization and ad requests.
+Update/form errors or denied permission leave ads disabled. About includes the
+hosted privacy policy and an Ad privacy choices button when UMP requires it.
+Without a verified age screen, every user receives protective under-age UMP,
+child ad treatment, G-rated and non-personalized requests. Adults artwork is
+not used to infer age. This is a conservative configuration, not an independent
+legal compliance assessment. The owner approved the Play child-compliance
+certification. AdMob still shows Requires review, with store-link/approval and
+physical-device ad-form/rendering/dismissal validation outstanding. Never click
+live ads to test them.
+
+The following is historical documentation for the demo build, not current ID status.
+
 # Test ads and completion — 0.6.0+8
 
 User authorized Google test ads because Sketchora's live AdMob IDs are not available. This build supports Google's published demo units only and produces no ad revenue. It must not be presented as a monetized production build.

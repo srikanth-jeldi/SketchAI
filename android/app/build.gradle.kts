@@ -25,6 +25,7 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.epitomehub.sketluma"
+        manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -49,6 +50,7 @@ android {
     }
     buildTypes {
         release {
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-9061518700917881~2013058778"
             signingConfig = if (testSigning) signingConfigs.getByName("debug") else signingConfigs.findByName("upload")
             proguardFiles("proguard-rules.pro")
         }

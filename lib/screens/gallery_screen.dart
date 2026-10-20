@@ -9,6 +9,7 @@ import '../coloring/library_screen.dart';
 import '../storage/local_diagnostics.dart';
 
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../ads/test_ads.dart';
 
@@ -20,6 +21,22 @@ class GalleryScreen extends StatefulWidget {
 }
 
 class _GalleryScreenState extends State<GalleryScreen> {
+  Future<void> _openPrivacyPolicy() async {
+    try {
+      final opened = await launchUrl(
+        Uri.parse('https://srikanth-jeldi.github.io/SketchAI/privacy.html'),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!opened && mounted) {
+        _snack('Could not open the privacy policy. Please try again.');
+      }
+    } catch (_) {
+      if (mounted) {
+        _snack('Could not open the privacy policy. Please try again.');
+      }
+    }
+  }
+
   List<SketchDocument> _documents = [];
   bool _loading = true, _creating = false;
   bool _galleryOnly = false;
@@ -313,7 +330,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                                     onPressed: () => showAboutDialog(
                                       context: context,
                                       applicationName: 'Sketluma',
-                                      applicationVersion: '0.6.3 · Sketluma',
+                                      applicationVersion: '0.6.4 · Sketluma',
                                       applicationLegalese:
                                           'Powered by EpitomeHub®',
                                       applicationIcon: const BrandMark(
@@ -322,6 +339,25 @@ class _GalleryScreenState extends State<GalleryScreen> {
                                       children: [
                                         const Text(
                                           'Your ideas. Your canvas.\nSketches stay on this device. No account required.\n\nExport important work before uninstalling the app.',
+                                        ),
+                                        TextButton(
+                                          onPressed: _openPrivacyPolicy,
+                                          child: const Text('Privacy policy'),
+                                        ),
+                                        ValueListenableBuilder<bool>(
+                                          valueListenable: TestAds
+                                              .instance
+                                              .privacyOptionsRequired,
+                                          builder: (_, required, _) => required
+                                              ? TextButton(
+                                                  onPressed: TestAds
+                                                      .instance
+                                                      .showPrivacyOptions,
+                                                  child: const Text(
+                                                    'Ad privacy choices',
+                                                  ),
+                                                )
+                                              : const SizedBox.shrink(),
                                         ),
                                         TextButton(
                                           onPressed: _shareDiagnostics,

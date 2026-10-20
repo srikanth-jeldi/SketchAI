@@ -13,6 +13,24 @@ import 'package:sketchora/theme.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  test('live ad selection requires Android release and explicit opt-in', () {
+    for (final release in [false, true]) {
+      for (final android in [false, true]) {
+        for (final enabled in [false, true]) {
+          expect(
+            SketlumaAdIds.useLive(
+              release: release,
+              android: android,
+              enabled: enabled,
+            ),
+            release && android && enabled,
+          );
+        }
+      }
+    }
+    expect(SketlumaAdIds.banner, TestAdIds.banner);
+    expect(SketlumaAdIds.interstitial, TestAdIds.interstitial);
+  });
   test('test ad IDs and completion frequency policy', () {
     expect(TestAdIds.banner, startsWith('ca-app-pub-3940256099942544/'));
     expect(TestAdIds.interstitial, startsWith('ca-app-pub-3940256099942544/'));
