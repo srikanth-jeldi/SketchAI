@@ -32,3 +32,14 @@ The earlier Android startup R8 fix and AdMob consent gate remain. AdMob privacy 
 - ARM64 local demo APK SHA256: `2B971811B69B6D789F1EBBE8EB29A9EEE76E484307AC145EE0A0A7E1C4A5B254`.
 - Emulator installation succeeded. The release displayed its main activity, `libflutter.so` loaded successfully, and the process remained alive through the subsequent idle check. No `FATAL EXCEPTION`, `UnsatisfiedLinkError`, or `dlopen failed` in the captured log. Emulator launch was slow under host memory pressure; this is not a physical-phone performance measurement.
 - Log: ignored `output/final-startup-0.6.5.txt`. The task emulator was stopped afterward.
+
+
+## Play Console submission — 20 October 2026
+
+- Version code 13 (0.6.5) was accepted by Google Play. The old version-10 crash bundle was removed from the release selection.
+- Production release `0.6.5 (13) - Sketluma launch` passed release validation (Ready to release). Play Console estimated 19.3 MB for new installs.
+- At the owner's explicit request, all 178 available country/region selections were targeted (177 named countries/regions plus rest of world).
+- Submitted the production release, listing, country availability and app-content declarations: 11 changes. Console verified **Changes in review**; preliminary quick checks were running. Managed publishing is off, so approved changes publish automatically. This does not mean the app is already publicly available.
+- No source code or binary changed after the verified AAB build.
+- Separate monetization follow-up: the AdMob privacy-message manager still renders a blank embedded page. Privacy-message configuration and ad serving are not confirmed; the app's consent gate remains fail-closed.
+- Local UI proofs: `output/sketluma-production-ready-065.png`, `output/sketluma-production-in-review-065.png`, and `output/sketluma-worldwide-countries.png` (ignored).

@@ -91,3 +91,5 @@ sourced from Google Fonts.
 Regenerate launcher icons with `dart run flutter_launcher_icons`.
 
 Small phone APKs: ARM64 19.83 MB / ARM32 19.35 MB. All bundled designs remain offline; exact original colouring maps are independent of compressed display assets. See [0.6.5 release notes](docs/RELEASE_0_6_5.md).
+
+Play Console: version 13 (0.6.5) production launch submitted for review on 20 October 2026, targeting all 178 available country/region selections. Approval/public availability and AdMob privacy-message setup remain pending.
