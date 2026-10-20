@@ -1,6 +1,6 @@
 # Sketluma — Sketch & Paint
 
-**0.6.2+10 test candidate:** company package `com.epitomehub.sketluma`, with Sketluma / Powered by EpitomeHub® branding. This package installs separately from the older personal-package test app. See [package migration notes](docs/RELEASE_0_6_2.md). The drawing tools, saved snapshot animation and Google demo ads remain available; live monetization is not enabled.
+**0.6.4+12 release candidate:** company package `com.epitomehub.sketluma`, with Sketluma / Powered by EpitomeHub® branding. Includes the reproduced Android startup-crash fix, verified Sketluma AdMob IDs, consent-gated ad requests and in-app privacy links. The store AAB enables real Android ad units; the separate test APK uses demo units. AdMob approval and physical-device acceptance remain pending. See [release notes](docs/RELEASE_0_6_4.md) and [package migration notes](docs/RELEASE_0_6_2.md).
 
 Previous candidate **0.5.0+7** added eight illustrated colouring scenes and on-demand artwork loading, background mask preparation, memory-pressure cleanup and local diagnostics. See [actual content count, source resolution, signing and remaining Play steps](docs/RELEASE_0_5.md). The current build remains an internal testing candidate, not a completed 2,000-artwork production release.
 
@@ -29,7 +29,7 @@ with the approved S logo, warm ivory surfaces, violet controls and coral accents
 - Full-resolution white/transparent PNG through the system share/save sheet.
 - Responsive phone/tablet UI and Android/iOS launcher icons.
 
-No accounts or runtime AI services. Google demo ads are included; drawing works offline. Artwork is stored in the app support
+No accounts or runtime AI services. Advertising is subject to SDK privacy permission; drawing works offline. Artwork is stored in the app support
 directory; iOS OS-level backup policies may apply. Uninstalling can remove work.
 Export important sketches first. Undo history is session-only.
 
@@ -45,7 +45,7 @@ flutter test
 flutter build apk --debug
 ```
 
-App ID: `com.epitomehub.sketluma` (new company package; separate install). Version: `0.6.2+10`.
+App ID: `com.epitomehub.sketluma` (new company package; separate install). Version: `0.6.4+12`.
 Current project minimums: Android 7.0 (API 24), iOS 15.0.
 Machine SDK paths live in ignored `android/local.properties`.
 Use `scripts/verify.ps1` for Windows checks and APK packaging. It also directs
@@ -68,8 +68,9 @@ to your Apple team, and select the device. For TestFlight, configure distributio
 signing, run `flutter build ipa`, and upload with Xcode/Transporter.
 iOS build, signing, Apple Pencil and iPad share sheets need Mac/device validation.
 Windows checks do not establish iOS readiness. Distribution keys are not included.
-Android release currently uses debug signing for internal tests; configure your
-own signing before store submission.
+The test APK uses the existing internal debug certificate. Store AABs use the
+locally configured private upload key; credentials are ignored by Git. The
+real-unit AAB build explicitly supplies `--dart-define=SKETLUMA_LIVE_ADS=true`.
 
 ## Testing / next phases
 
