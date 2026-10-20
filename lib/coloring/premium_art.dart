@@ -90,10 +90,10 @@ Future<void> ensureArtworkLoaded(String? id) {
 }
 
 String outlineAsset(ArtEntry entry) => entry.illustrated
-    ? 'assets/artwork/${illustratedFiles[entry.variation]}-outline-v1.png'
-    : 'assets/artwork/${_premiumFiles[entry.variation]}-v1.png';
+    ? 'assets/artwork/${illustratedFiles[entry.variation]}-outline-v1.webp'
+    : 'assets/artwork/${_premiumFiles[entry.variation]}-v1.webp';
 String referenceAsset(ArtEntry entry) => entry.illustrated
-    ? 'assets/artwork/${illustratedFiles[entry.variation]}-reference-v1.png'
+    ? 'assets/artwork/${illustratedFiles[entry.variation]}-reference-v1.webp'
     : outlineAsset(entry);
 
 Future<void> _loadRaster(String id) async {
@@ -106,15 +106,21 @@ Future<void> _loadRaster(String id) async {
   final image = (await codec.getNextFrame()).image;
   codec.dispose();
   try {
-    final data = (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!
-        .buffer
-        .asUint8List();
-    final mask = await compute(_outlineRuns, (
-      data,
-      image.width,
-      image.height,
-      entry.illustrated,
-    ));
+    // Original component IDs remain stable across display-image compression.
+    final packed = await rootBundle.load(
+      outlineAsset(entry).replaceAll('.webp', '.mask'),
+    );
+    final raw = Uint8List.fromList(zlib.decode(packed.buffer.asUint8List()));
+    final data = ByteData.sublistView(raw);
+    final runs = Int32List((raw.length - 8) ~/ 4);
+    for (var i = 0; i < runs.length; i++) {
+      runs[i] = data.getInt32(8 + i * 4, Endian.little);
+    }
+    final mask = <String, Object>{
+      'w': data.getUint32(0, Endian.little),
+      'h': data.getUint32(4, Endian.little),
+      'runs': runs,
+    };
     final regions = _regionsFromRuns(mask, square: entry.illustrated);
     if (entry.illustrated) {
       final reference = await rootBundle.load(referenceAsset(entry));
@@ -132,90 +138,6 @@ Future<void> _loadRaster(String id) async {
     _referenceImages.remove(id)?.dispose();
     rethrow;
   }
-}
-
-Map<String, Object> _outlineRuns((Uint8List, int, int, bool) input) {
-  final (rgba, width, height, square) = input;
-  // Half-resolution hit masks keep touch detection and retained paths bounded.
-  // A dark source pixel blocks its cell, preserving fine walls conservatively.
-  final w = width ~/ (square ? 2 : 4), h = height ~/ 2;
-  final labels = Int32List(w * h);
-  for (var y = 0; y < h; y++) {
-    for (var x = 0; x < w; x++) {
-      for (var dy = 0; dy < 2; dy++) {
-        for (var dx = 0; dx < 2; dx++) {
-          final p = ((y * 2 + dy) * width + x * 2 + dx) * 4;
-          if (rgba[p] + rgba[p + 1] + rgba[p + 2] < 570) labels[y * w + x] = -1;
-        }
-      }
-    }
-  }
-  var label = 0;
-  final queue = Int32List(w * h);
-  final counts = <int>[0];
-  for (var seed = 0; seed < labels.length; seed++) {
-    if (labels[seed] != 0) continue;
-    label++;
-    var head = 0, tail = 1;
-    queue[0] = seed;
-    labels[seed] = label;
-    while (head < tail) {
-      final p = queue[head++], x = p % w;
-      for (final q in [
-        if (x > 0) p - 1,
-        if (x < w - 1) p + 1,
-        if (p >= w) p - w,
-        if (p < labels.length - w) p + w,
-      ]) {
-        if (labels[q] == 0) {
-          labels[q] = label;
-          queue[tail++] = q;
-        }
-      }
-    }
-    counts.add(tail);
-  }
-  // Preserve component IDs from v0.3 saves, but extend colour beneath ink.
-  // Conservative source barriers otherwise leave white stripes where the
-  // monochrome display suppresses pale source texture.
-  var head = 0, tail = 0;
-  for (var p = 0; p < labels.length; p++) {
-    if (labels[p] > 0 && counts[labels[p]] >= 18) {
-      queue[tail++] = p;
-    } else {
-      labels[p] = 0;
-    }
-  }
-  while (head < tail) {
-    final p = queue[head++], x = p % w;
-    // Absorb discarded texture specks into the nearest original area. Existing
-    // area seeds never change ownership; ink is drawn above this colour map.
-    for (final q in [
-      if (x > 0) p - 1,
-      if (x < w - 1) p + 1,
-      if (p >= w) p - w,
-      if (p < labels.length - w) p + w,
-    ]) {
-      if (labels[q] == 0) {
-        labels[q] = labels[p];
-        queue[tail++] = q;
-      }
-    }
-  }
-  final runs = <int>[];
-  for (var y = 0; y < h; y++) {
-    var x = 0;
-    while (x < w) {
-      final id = labels[y * w + x], start = x++;
-      while (x < w && labels[y * w + x] == id) {
-        x++;
-      }
-      if (id > 0) {
-        runs.addAll([id, start, y, x - start]);
-      }
-    }
-  }
-  return {'w': w, 'h': h, 'runs': Int32List.fromList(runs)};
 }
 
 List<ArtRegion> _regionsFromRuns(

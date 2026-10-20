@@ -75,7 +75,7 @@ void main() {
           format: ui.ImageByteFormat.rawRgba,
         ))!.buffer.asUint8List();
         final bytes = await rootBundle.load(
-          'assets/artwork/01-botanical-v1.png',
+          'assets/artwork/01-botanical-v1.webp',
         );
         final sourceCodec = await ui.instantiateImageCodec(
           bytes.buffer.asUint8List(),

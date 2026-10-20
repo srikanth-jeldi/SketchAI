@@ -38,6 +38,10 @@ android {
         versionName = flutter.versionName
     }
 
+    packaging {
+        jniLibs.useLegacyPackaging = true
+    }
+
     signingConfigs {
         if (uploadPropertiesFile.exists()) {
             create("upload") {

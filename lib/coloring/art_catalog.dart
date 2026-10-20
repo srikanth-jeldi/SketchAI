@@ -1,3 +1,4 @@
+import 'dart:io' show zlib;
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 

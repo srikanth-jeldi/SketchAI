@@ -64,7 +64,7 @@ class BrandMark extends StatelessWidget {
   Widget build(BuildContext context) => ClipRRect(
     borderRadius: BorderRadius.circular(size * .26),
     child: Image.asset(
-      'assets/branding/sketluma-icon-v1.png',
+      'assets/branding/sketluma-icon-v1.webp',
       width: size,
       height: size,
       semanticLabel: 'Sketluma brush S logo',

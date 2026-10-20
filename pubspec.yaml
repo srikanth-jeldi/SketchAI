@@ -1,7 +1,7 @@
 name: sketchora
 description: "Sketluma — a quiet space for bold ideas. Offline sketching and painting."
 publish_to: 'none'
-version: 0.6.4+12
+version: 0.6.5+13
 
 environment:
   sdk: ^3.13.3
@@ -31,10 +31,45 @@ flutter:
       fonts:
         - asset: assets/fonts/DMSerifDisplay-Regular.ttf
   assets:
-    - assets/artwork/
+    - assets/artwork/01-botanical-v1.webp
+    - assets/artwork/02-wildlife-v1.webp
+    - assets/artwork/03-mandala-v1.webp
+    - assets/artwork/04-fantasy-v1.webp
+    - assets/artwork/05-landscape-v1.webp
+    - assets/artwork/06-architecture-v1.webp
+    - assets/artwork/coastal-cafe-outline-v1.webp
+    - assets/artwork/coastal-cafe-reference-v1.webp
+    - assets/artwork/dragon-garden-outline-v1.webp
+    - assets/artwork/dragon-garden-reference-v1.webp
+    - assets/artwork/garden-cottage-outline-v1.webp
+    - assets/artwork/garden-cottage-reference-v1.webp
+    - assets/artwork/kitten-bakery-outline-v1.webp
+    - assets/artwork/kitten-bakery-reference-v1.webp
+    - assets/artwork/koi-lilies-outline-v1.webp
+    - assets/artwork/koi-lilies-reference-v1.webp
+    - assets/artwork/magnolia-tea-outline-v1.webp
+    - assets/artwork/magnolia-tea-reference-v1.webp
+    - assets/artwork/ocean-turtle-outline-v1.webp
+    - assets/artwork/ocean-turtle-reference-v1.webp
+    - assets/artwork/storybook-fox-outline-v1.webp
+    - assets/artwork/storybook-fox-reference-v1.webp
+    - assets/artwork/01-botanical-v1.mask
+    - assets/artwork/02-wildlife-v1.mask
+    - assets/artwork/03-mandala-v1.mask
+    - assets/artwork/04-fantasy-v1.mask
+    - assets/artwork/05-landscape-v1.mask
+    - assets/artwork/06-architecture-v1.mask
+    - assets/artwork/coastal-cafe-outline-v1.mask
+    - assets/artwork/dragon-garden-outline-v1.mask
+    - assets/artwork/garden-cottage-outline-v1.mask
+    - assets/artwork/kitten-bakery-outline-v1.mask
+    - assets/artwork/koi-lilies-outline-v1.mask
+    - assets/artwork/magnolia-tea-outline-v1.mask
+    - assets/artwork/ocean-turtle-outline-v1.mask
+    - assets/artwork/storybook-fox-outline-v1.mask
     - assets/audio/applause.wav
-    - assets/branding/sketluma-icon-v1.png
-    - assets/branding/sketluma-full-logo-v1.png
+    - assets/branding/sketluma-icon-v1.webp
+    - assets/branding/sketluma-full-logo-v1.webp
 
 flutter_launcher_icons:
   android: true

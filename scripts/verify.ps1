@@ -21,8 +21,16 @@ Invoke-FlutterCheck -Arguments @('analyze')
 Invoke-FlutterCheck -Arguments @('test', '--reporter', 'expanded')
 if (-not $SkipBuild) {
     $taskMode = if ($Release) { 'release' } else { 'debug' }
-    Invoke-FlutterCheck -Arguments @('build', 'apk', "--$taskMode")
+    $taskBuildArgs = @('build', 'apk', "--$taskMode")
+    if ($Release) { $taskBuildArgs += '--split-per-abi' }
+    Invoke-FlutterCheck -Arguments $taskBuildArgs
     New-Item -ItemType Directory -Force 'dist' | Out-Null
     $taskVersion = ((Select-String -Path 'pubspec.yaml' -Pattern '^version:').Line -replace '^version:\s*','').Split('+')[0]
-    Copy-Item -LiteralPath "build\app\outputs\flutter-apk\app-$taskMode.apk" -Destination "dist\Sketluma-$taskVersion-$taskMode.apk" -Force
+    if ($Release) {
+        foreach ($taskAbi in @('arm64-v8a', 'armeabi-v7a', 'x86_64')) {
+            Copy-Item -LiteralPath "build\app\outputs\flutter-apk\app-$taskAbi-release.apk" -Destination "dist\Sketluma-$taskVersion-$taskAbi-release.apk" -Force
+        }
+    } else {
+        Copy-Item -LiteralPath "build\app\outputs\flutter-apk\app-$taskMode.apk" -Destination "dist\Sketluma-$taskVersion-$taskMode.apk" -Force
+    }
 }

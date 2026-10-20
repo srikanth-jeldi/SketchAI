@@ -112,7 +112,7 @@ class _BootScreenState extends State<_BootScreen> with WidgetsBindingObserver {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Image.asset(
-                  'assets/branding/sketluma-full-logo-v1.png',
+                  'assets/branding/sketluma-full-logo-v1.webp',
                   width: 340,
                   semanticLabel: 'Sketluma. Sketch and Paint.',
                 ),

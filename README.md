@@ -1,6 +1,6 @@
 # Sketluma — Sketch & Paint
 
-**0.6.4+12 release candidate:** company package `com.epitomehub.sketluma`, with Sketluma / Powered by EpitomeHub® branding. Includes the reproduced Android startup-crash fix, verified Sketluma AdMob IDs, consent-gated ad requests and in-app privacy links. The store AAB enables real Android ad units; the separate test APK uses demo units. AdMob approval and physical-device acceptance remain pending. See [release notes](docs/RELEASE_0_6_4.md) and [package migration notes](docs/RELEASE_0_6_2.md).
+**0.6.5+13 release candidate:** company package `com.epitomehub.sketluma`, with Sketluma / Powered by EpitomeHub® branding. Includes the reproduced Android startup-crash fix, verified Sketluma AdMob IDs, consent-gated ad requests and in-app privacy links. The store AAB enables real Android ad units; the separate test APK uses demo units. AdMob approval and physical-device acceptance remain pending. See [release notes](docs/RELEASE_0_6_5.md) and [package migration notes](docs/RELEASE_0_6_2.md).
 
 Previous candidate **0.5.0+7** added eight illustrated colouring scenes and on-demand artwork loading, background mask preparation, memory-pressure cleanup and local diagnostics. See [actual content count, source resolution, signing and remaining Play steps](docs/RELEASE_0_5.md). The current build remains an internal testing candidate, not a completed 2,000-artwork production release.
 
@@ -45,7 +45,7 @@ flutter test
 flutter build apk --debug
 ```
 
-App ID: `com.epitomehub.sketluma` (new company package; separate install). Version: `0.6.4+12`.
+App ID: `com.epitomehub.sketluma` (new company package; separate install). Version: `0.6.5+13`.
 Current project minimums: Android 7.0 (API 24), iOS 15.0.
 Machine SDK paths live in ignored `android/local.properties`.
 Use `scripts/verify.ps1` for Windows checks and APK packaging. It also directs
@@ -89,3 +89,5 @@ them. DM Serif Display and DM Sans are bundled for offline typography under the
 SIL Open Font License (`assets/fonts/OFL.txt`, `assets/fonts/DMSans-OFL.txt`),
 sourced from Google Fonts.
 Regenerate launcher icons with `dart run flutter_launcher_icons`.
+
+Small phone APKs: ARM64 19.83 MB / ARM32 19.35 MB. All bundled designs remain offline; exact original colouring maps are independent of compressed display assets. See [0.6.5 release notes](docs/RELEASE_0_6_5.md).
