@@ -21,8 +21,7 @@ final kidsEntries = List<ArtEntry>.unmodifiable([
   illustratedEntries[1],
   illustratedEntries[4],
   illustratedEntries[5],
-  for (var variant = 0; variant < 3; variant++)
-    for (var family = 0; family < 10; family++) ArtEntry(family, variant),
+  ...atelierForLevel(0),
 ]);
 final adultEntries = List<ArtEntry>.unmodifiable([
   illustratedEntries[2],

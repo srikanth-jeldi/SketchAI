@@ -33,6 +33,45 @@ void main() {
   setUpAll(() async {
     await loadPremiumArt();
   });
+  testWidgets('three sections expose the full catalogue and reset searches', (
+    tester,
+  ) async {
+    final dir = (await tester.runAsync(
+      () => Directory.systemTemp.createTemp('sketluma-sections-'),
+    ))!;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: sketchoraTheme(),
+        home: ArtLibraryScreen(store: _MemoryStore(dir)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('364 designs · choose your favourite'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'koi');
+    await tester.pumpAndSettle();
+    expect(find.text('30 designs · choose your favourite'), findsOneWidget);
+    await tester.tap(find.text('Intermediate'));
+    await tester.pumpAndSettle();
+    expect(find.text('364 designs · choose your favourite'), findsOneWidget);
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller?.text ?? '',
+      '',
+    );
+    await tester.tap(find.text('Advanced'));
+    await tester.pumpAndSettle();
+    expect(find.text('366 designs · choose your favourite'), findsOneWidget);
+    await tester.tap(find.text('Original collection · 2,000'));
+    await tester.pumpAndSettle();
+    expect(find.text('2000 designs · choose your favourite'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'Whisker wishes 200');
+    await tester.pumpAndSettle();
+    expect(find.text('1 designs · choose your favourite'), findsOneWidget);
+    await tester.tap(find.text('Studio collection · 1,094'));
+    await tester.pumpAndSettle();
+    expect(find.text('364 designs · choose your favourite'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    await tester.runAsync(() => dir.delete(recursive: true));
+  });
   testWidgets(
     'bottom Gallery opens artwork library even with no saved sketches',
     (tester) async {
@@ -54,9 +93,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(ArtLibraryScreen), findsOneWidget);
       expect(find.text('Botanical Reverie'), findsNothing);
-      await tester.tap(find.text('Adults'));
+      await tester.tap(find.text('Advanced'));
       await tester.pumpAndSettle();
-      expect(find.text('Cottage in bloom'), findsOneWidget);
+      expect(find.text('Botanical Reverie'), findsOneWidget);
       await tester.tap(find.text('Detailed'));
       await tester.pumpAndSettle();
       expect(find.text('Botanical Reverie'), findsOneWidget);
@@ -65,7 +104,7 @@ void main() {
       expect(find.text('Your sketches'), findsOneWidget);
       await tester.tap(find.text('Gallery'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Adults'));
+      await tester.tap(find.text('Advanced'));
       await tester.tap(find.text('Detailed'));
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Botanical Reverie'));
@@ -288,7 +327,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       await _capture(tester, boundary, 'colouring-library');
-      await tester.tap(find.text('Adults'));
+      await tester.tap(find.text('Advanced'));
       await tester.tap(find.text('Detailed'));
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Botanical Reverie').first);

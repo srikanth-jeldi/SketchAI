@@ -164,7 +164,7 @@ void main() {
     await tester.tap(find.text('Gallery'));
     await settle();
     await capture('screen-02-kids');
-    await tester.tap(find.text('Adults'));
+    await tester.tap(find.text('Advanced'));
     await tester.tap(find.text('Detailed'));
     await settle();
     await capture('screen-03-adults');

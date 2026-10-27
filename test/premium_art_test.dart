@@ -14,7 +14,7 @@ void main() {
     'simple adult masters offer broad areas, stable saves and a preview',
     (tester) async {
       await tester.runAsync(() async {
-        expect(kidsEntries.length, 34);
+        expect(kidsEntries.length, 364);
         expect(kidsEntries.where((e) => e.difficulty == 'Easy'), isNotEmpty);
         expect(adultEntries.where((e) => e.difficulty == 'Easy').length, 2);
         expect(adultEntries.where((e) => e.difficulty == 'Medium').length, 2);

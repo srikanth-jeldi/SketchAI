@@ -66,6 +66,7 @@ class _StudioScreenState extends State<StudioScreen>
 
   List<(String, Color)> get _colourOptions {
     final entry = ArtCatalog.entry(_editor.document.artworkId);
+    if (entry?.atelier == true) return atelierPalette;
     if (entry != null && entry.illustrated) {
       return artworkPalettes[[1, 2, 5, 0, 2, 0, 2, 5][entry.variation]];
     }

@@ -9,6 +9,8 @@ import 'package:flutter/foundation.dart';
 part 'premium_art.dart';
 part 'simple_adult_art.dart';
 part 'illustrated_art.dart';
+part 'atelier_art.dart';
+part 'atelier_visibility.dart';
 
 const artCategories = [
   'Flowers',
@@ -45,14 +47,22 @@ class ArtEntry {
   bool get illustrated => family == 12;
   bool get raster => premium || illustrated;
   bool get adultSimple => family == 11;
-  String get id => illustrated
+  bool get atelier => family == 13;
+  int get atelierLevel => variation % 30 ~/ 10;
+  String get searchTerms =>
+      '$title $category ${atelier ? const ['flowers floral bouquet wreath peony garden', 'birds songbird hummingbird orchard garden', 'butterfly wings meadow flowers', 'cottage house village greenhouse garden', 'mountain lake alpine valley landscape', 'coast harbour seaside boats sails ocean', 'water pond lotus koi fish waterlily', 'ocean fish turtle reef sea coral', 'tea cup vase flowers still life citrus', 'woodland mushrooms village forest', 'mandala lotus stars rosette celestial', 'succulent cactus agave desert plants'][variation ~/ 30 % 12] : ''}';
+  String get id => atelier
+      ? 'atelier_$variation'
+      : illustrated
       ? 'illustrated_$variation'
       : adultSimple
       ? 'adult_$variation'
       : premium
       ? 'premium_$variation'
       : 'art_${family}_$variation';
-  String get category => illustrated
+  String get category => atelier
+      ? atelierCategories[variation ~/ 30 % 12]
+      : illustrated
       ? illustrationCategories[variation]
       : adultSimple
       ? (variation % 3 == 0
@@ -63,14 +73,18 @@ class ArtEntry {
       : premium
       ? premiumCategories[variation]
       : artCategories[family];
-  String get title => illustrated
+  String get title => atelier
+      ? '${_atelierTitles[variation ~/ 360][variation ~/ 30 % 12]} · ${_atelierEditions[variation % 10]} ${atelierLevel + 1}'
+      : illustrated
       ? illustrationTitles[variation]
       : adultSimple
       ? simpleAdultTitles[variation]
       : premium
       ? premiumTitles[variation]
       : '${artNames[family]} ${variation + 1}';
-  String get difficulty => illustrated
+  String get difficulty => atelier
+      ? ['Easy', 'Medium', 'Detailed'][atelierLevel]
+      : illustrated
       ? (variation < 4 ? 'Easy' : 'Medium')
       : premium
       ? 'Detailed'
@@ -94,7 +108,13 @@ class ArtDesign {
   final ArtEntry entry;
   final List<ArtRegion> regions;
   final List<Path> details;
-  const ArtDesign(this.entry, this.regions, this.details);
+  final Map<String, List<Path>> layeredDetails;
+  const ArtDesign(
+    this.entry,
+    this.regions,
+    this.details, {
+    this.layeredDetails = const {},
+  });
   ArtRegion? regionAt(Offset position, {double tolerance = 0}) {
     for (final region in regions.reversed) {
       if (region.path.contains(position)) return region;
@@ -131,6 +151,13 @@ class ArtCatalog {
   );
   static final _cache = <String, ArtDesign>{};
   static ArtEntry? entry(String? id) {
+    final atelierMatch = RegExp(r'^atelier_(\d+)$').firstMatch(id ?? '');
+    if (atelierMatch != null) {
+      final index = int.tryParse(atelierMatch[1]!);
+      return index != null && index < atelierCount
+          ? atelierEntries[index]
+          : null;
+    }
     for (final art in illustratedEntries) {
       if (art.id == id) return art;
     }
@@ -160,11 +187,13 @@ class ArtCatalog {
     if (metadata.raster) {
       throw StateError('Artwork must be prepared before painting');
     }
-    final result = metadata.adultSimple
+    final result = metadata.atelier
+        ? _AtelierBuilder(metadata).build()
+        : metadata.adultSimple
         ? buildSimpleAdult(metadata)
         : _ArtBuilder(metadata).build();
     _cache[id] = result;
-    if (_cache.length > 24) _cache.remove(_cache.keys.first);
+    if (_cache.length > 32) _cache.remove(_cache.keys.first);
     return result;
   }
 }
@@ -782,9 +811,18 @@ void paintArt(
   final ink = Paint()
     ..color = const Color(0xFF292233)
     ..style = PaintingStyle.stroke
-    ..strokeWidth = art.entry.family < 10 ? 5 : 2.8
+    ..strokeWidth = art.entry.atelier
+        ? [4.0, 3.2, 2.6][art.entry.atelierLevel]
+        : art.entry.family < 10
+        ? 5
+        : 2.8
     ..strokeCap = StrokeCap.round
     ..strokeJoin = StrokeJoin.round;
+  if (outlines) {
+    for (final path in art.layeredDetails[''] ?? const <Path>[]) {
+      canvas.drawPath(path, ink);
+    }
+  }
   for (final region in art.regions) {
     canvas.drawPath(
       region.path,
@@ -794,9 +832,22 @@ void paintArt(
             : Colors.white,
     );
     if (outlines) canvas.drawPath(region.path, ink);
+    if (outlines) {
+      for (final path in art.layeredDetails[region.id] ?? const <Path>[]) {
+        canvas.drawPath(
+          path,
+          Paint()
+            ..color = ink.color
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2
+            ..strokeCap = StrokeCap.round,
+        );
+      }
+    }
   }
   if (outlines) {
-    for (final path in art.details) {
+    for (final path
+        in art.layeredDetails.isEmpty ? art.details : const <Path>[]) {
       canvas.drawPath(path, ink..strokeWidth = 2);
     }
   }

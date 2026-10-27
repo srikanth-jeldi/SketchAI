@@ -1,5 +1,16 @@
 import 'package:flutter/material.dart';
 
+const atelierPalette = <(String, Color)>[
+  ('Rose', Color(0xFFEAA4B3)),
+  ('Berry', Color(0xFFB96585)),
+  ('Honey', Color(0xFFE8BD70)),
+  ('Sage', Color(0xFF92B39C)),
+  ('Forest', Color(0xFF537F6C)),
+  ('Lagoon', Color(0xFF92BFD0)),
+  ('Lilac', Color(0xFFB6A3CF)),
+  ('Terracotta', Color(0xFFCE9275)),
+];
+
 // Curated from each approved reference; users can still open the full mixer.
 const artworkPalettes = <List<(String, Color)>>[
   [

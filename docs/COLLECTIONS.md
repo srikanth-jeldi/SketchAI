@@ -1,4 +1,8 @@
-# Kids and Adults — 0.4.0+6
+# Collections — 0.7.0+14
+
+The current visible catalogue has 3,094 unique pages: Studio has Kids 364, Intermediate 364 and Advanced 366, and Original collection restores all 2,000 legacy pages. This includes 1,080 new procedural vector editions and 14 existing raster illustrations. Sections start on All levels. See [current content scope](RELEASE_0_7_0.md).
+
+## Historical 0.4.0+6 behaviour
 
 Gallery now starts in Kids / Easy. Both Kids and Adults start on Easy whenever switching collections; category selection resets so stale categories cannot hide the new collection. Search applies within the selected collection and difficulty. Saved sketches remain on Home.
 

@@ -17,8 +17,9 @@ class ArtLibraryScreen extends StatefulWidget {
 
 class _ArtLibraryState extends State<ArtLibraryScreen> {
   String? _category;
-  bool _kids = true;
-  String _difficulty = 'Easy';
+  int _section = 0;
+  bool _original = false;
+  String _difficulty = 'All levels';
   String _query = '';
   int _visible = 30;
   bool _opening = false;
@@ -117,16 +118,23 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final collection = _kids ? kidsEntries : adultEntries;
-    final categories = collection.map((e) => e.category).toSet().toList();
+    final collection = _original
+        ? ArtCatalog.entries
+        : [kidsEntries, intermediateEntries, advancedEntries][_section];
+    final categories = collection
+        .where(
+          (e) => _difficulty == 'All levels' || e.difficulty == _difficulty,
+        )
+        .map((e) => e.category)
+        .toSet()
+        .toList();
     final entries = collection
         .where(
           (entry) =>
-              entry.difficulty == _difficulty &&
+              (_difficulty == 'All levels' ||
+                  entry.difficulty == _difficulty) &&
               (_category == null || entry.category == _category) &&
-              '${entry.title} ${entry.category}'.toLowerCase().contains(
-                _query.toLowerCase(),
-              ),
+              entry.searchTerms.toLowerCase().contains(_query.toLowerCase()),
         )
         .toList();
     return Scaffold(
@@ -145,39 +153,80 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _kids
-                        ? 'Big shapes, happy colours. Start with something easy.'
-                        : 'A little calm. Beautiful designs at your own pace.',
+                    '3,094 offline designs · yours to colour',
                     style: TextStyle(color: muted, fontSize: 12),
                   ),
                   const SizedBox(height: 16),
-                  SegmentedButton<bool>(
-                    segments: const [
-                      ButtonSegment(
-                        value: true,
-                        label: Text('Kids'),
-                        icon: Icon(Icons.child_care),
-                      ),
-                      ButtonSegment(
-                        value: false,
-                        label: Text('Adults'),
-                        icon: Icon(Icons.spa_outlined),
-                      ),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      for (final original in [false, true])
+                        ChoiceChip(
+                          showCheckmark: false,
+                          visualDensity: VisualDensity.compact,
+                          labelStyle: const TextStyle(fontSize: 11),
+                          padding: EdgeInsets.zero,
+                          labelPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                          ),
+                          label: Text(
+                            original
+                                ? 'Original collection · 2,000'
+                                : 'Studio collection · 1,094',
+                          ),
+                          selected: _original == original,
+                          onSelected: (_) => setState(() {
+                            _original = original;
+                            _section = 0;
+                            _category = null;
+                            _difficulty = 'All levels';
+                            _query = '';
+                            _visible = 30;
+                          }),
+                        ),
                     ],
-                    selected: {_kids},
-                    onSelectionChanged: (value) => setState(() {
-                      _kids = value.first;
-                      _category = null;
-                      _difficulty = 'Easy';
-                      _visible = 30;
-                    }),
                   ),
+                  const SizedBox(height: 12),
+                  if (!_original)
+                    SegmentedButton<int>(
+                      showSelectedIcon: false,
+                      style: const ButtonStyle(
+                        textStyle: WidgetStatePropertyAll(
+                          TextStyle(fontSize: 11),
+                        ),
+                      ),
+                      segments: const [
+                        ButtonSegment(value: 0, label: Text('Kids')),
+                        ButtonSegment(value: 1, label: Text('Intermediate')),
+                        ButtonSegment(value: 2, label: Text('Advanced')),
+                      ],
+                      selected: {_section},
+                      onSelectionChanged: (value) => setState(() {
+                        _section = value.first;
+                        _category = null;
+                        _difficulty = 'All levels';
+                        _query = '';
+                        _visible = 30;
+                      }),
+                    ),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
                     children: [
-                      for (final level in ['Easy', 'Medium', 'Detailed'])
+                      for (final level in [
+                        'All levels',
+                        'Easy',
+                        'Medium',
+                        'Detailed',
+                      ])
                         ChoiceChip(
+                          showCheckmark: false,
+                          visualDensity: VisualDensity.compact,
+                          labelStyle: const TextStyle(fontSize: 12),
+                          padding: EdgeInsets.zero,
+                          labelPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                          ),
                           label: Text(level),
                           selected: _difficulty == level,
                           onSelected: (_) => setState(() {
@@ -190,7 +239,10 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
                   ),
                   const SizedBox(height: 12),
                   TextField(
+                    key: ValueKey('$_original/$_section'),
                     decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 12),
                       prefixIcon: Icon(Icons.search_rounded),
                       hintText: 'Find a favourite design…',
                     ),
