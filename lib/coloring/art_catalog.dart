@@ -11,6 +11,19 @@ part 'simple_adult_art.dart';
 part 'illustrated_art.dart';
 part 'atelier_art.dart';
 part 'atelier_visibility.dart';
+part 'legacy_levels.dart';
+
+final allVisibleEntries = List<ArtEntry>.unmodifiable(
+  {
+    for (final e in [
+      ...kidsEntries,
+      ...intermediateEntries,
+      ...advancedEntries,
+      ...ArtCatalog.entries,
+    ])
+      e.id: e,
+  }.values,
+);
 
 const artCategories = [
   'Flowers',
@@ -90,11 +103,7 @@ class ArtEntry {
       ? 'Detailed'
       : adultSimple
       ? (variation < 3 ? 'Easy' : 'Medium')
-      : ArtCatalog.design(id).regions.length <= 45
-      ? 'Easy'
-      : ArtCatalog.design(id).regions.length <= 90
-      ? 'Medium'
-      : 'Detailed';
+      : ArtCatalog.legacyDifficulty(this);
 }
 
 class ArtRegion {
@@ -146,6 +155,21 @@ class ArtDesign {
 }
 
 class ArtCatalog {
+  static final _levels = <String, String>{};
+  static String legacyDifficulty(ArtEntry entry) => _legacyLevels.length == 2000
+      ? [
+          'Easy',
+          'Medium',
+          'Detailed',
+        ][_legacyLevels.codeUnitAt(entry.family * 200 + entry.variation) - 48]
+      : _levels.putIfAbsent(entry.id, () {
+          final n = design(entry.id).regions.length;
+          return n <= 45
+              ? 'Easy'
+              : n <= 90
+              ? 'Medium'
+              : 'Detailed';
+        });
   static final entries = List<ArtEntry>.unmodifiable(
     List.generate(2000, (index) => ArtEntry(index ~/ 200, index % 200)),
   );

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../theme.dart';
 import 'document.dart';
+import 'decoration.dart';
 import 'editor.dart';
 import 'renderer.dart';
 import '../coloring/art_catalog.dart';
@@ -22,6 +23,9 @@ class DrawingCanvas extends StatefulWidget {
   final double width, opacity;
   final bool handMode;
   final bool fillMode;
+  final bool objectMode;
+  final String? selectedDecorationId;
+  final ValueChanged<String?>? onSelectDecoration;
   const DrawingCanvas({
     super.key,
     required this.editor,
@@ -32,6 +36,9 @@ class DrawingCanvas extends StatefulWidget {
     required this.opacity,
     required this.handMode,
     this.fillMode = false,
+    this.objectMode = false,
+    this.selectedDecorationId,
+    this.onSelectDecoration,
   });
   @override
   State<DrawingCanvas> createState() => _DrawingCanvasState();
@@ -48,6 +55,9 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
   int? _drawingPointer;
   String? _strokeLayer;
   Offset? _fillStart;
+  int? _movingPointer;
+  Offset? _objectAnchor;
+  CanvasDecoration? _objectStart;
   @override
   void initState() {
     super.initState();
@@ -56,6 +66,10 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
   }
 
   void _documentChanged() {
+    _movingPointer = null;
+    _objectStart = null;
+    _objectAnchor = null;
+    _scene.decorationPreview = null;
     // Layer/history changes cancel uncommitted input.
     _scene.live = null;
     _fillStart = null;
@@ -93,6 +107,8 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
       : (_pointers.values.elementAt(0) - _pointers.values.elementAt(1))
             .distance;
   void _startGesture() {
+    _movingPointer = null;
+    _scene.decorationPreview = null;
     _scene.live = null;
     _drawingPointer = null;
     _gesture = true;
@@ -108,9 +124,31 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
       _scene.changed();
       return;
     }
-    if (_gesture || !widget.editor.document.activeLayer.visible) return;
+    if (_gesture ||
+        (!widget.objectMode && !widget.editor.document.activeLayer.visible)) {
+      return;
+    }
     final point = _toDocument(event.localPosition);
     final doc = widget.editor.document;
+    if (widget.objectMode) {
+      CanvasDecoration? hit;
+      for (final item in [
+        ...doc.decorations.where((d) => d.behindInk),
+        ...doc.decorations.where((d) => !d.behindInk),
+      ].reversed) {
+        if (item.contains(point)) {
+          hit = item;
+          break;
+        }
+      }
+      widget.onSelectDecoration?.call(hit?.id);
+      _movingPointer = hit == null ? null : event.pointer;
+      _objectAnchor = point;
+      _objectStart = hit;
+      _scene.decorationPreview = hit;
+      _scene.changed();
+      return;
+    }
     if (!(Offset.zero & Size(doc.width.toDouble(), doc.height.toDouble()))
         .contains(point)) {
       return;
@@ -147,6 +185,21 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
       }
       return;
     }
+    if (_movingPointer == event.pointer && _objectStart != null) {
+      final doc = widget.editor.document;
+      final p =
+          _objectStart!.center +
+          _toDocument(event.localPosition) -
+          _objectAnchor!;
+      _scene.decorationPreview = _objectStart!.copyWith(
+        center: Offset(
+          p.dx.clamp(0, doc.width.toDouble()),
+          p.dy.clamp(0, doc.height.toDouble()),
+        ),
+      );
+      _scene.changed();
+      return;
+    }
     if (_drawingPointer != event.pointer || _scene.live == null) return;
     _append(event);
     _scene.changed();
@@ -161,6 +214,14 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
   }
 
   void _up(PointerEvent event, {bool cancel = false}) {
+    if (_movingPointer == event.pointer) {
+      final next = _scene.decorationPreview;
+      _movingPointer = null;
+      _scene.decorationPreview = null;
+      if (!cancel && next != null && next.center != _objectStart?.center) {
+        widget.editor.putDecoration(next);
+      }
+    }
     if (_drawingPointer == event.pointer &&
         _fillStart != null &&
         !cancel &&
@@ -252,6 +313,9 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
                 scene: _scene,
                 editor: widget.editor,
                 cache: _cache,
+                selected: widget.objectMode
+                    ? widget.selectedDecorationId
+                    : null,
               ),
             ),
           ),
@@ -262,6 +326,7 @@ class _DrawingCanvasState extends State<DrawingCanvas> {
 }
 
 class _CanvasScene extends ChangeNotifier {
+  CanvasDecoration? decorationPreview;
   InkStroke? live;
   double scale = 1;
   Offset offset = Offset.zero;
@@ -272,10 +337,12 @@ class _ViewportPainter extends CustomPainter {
   final _CanvasScene scene;
   final DrawingEditor editor;
   final DrawingRenderCache cache;
+  final String? selected;
   _ViewportPainter({
     required this.scene,
     required this.editor,
     required this.cache,
+    this.selected,
   }) : super(repaint: scene);
   @override
   void paint(Canvas canvas, Size size) {
@@ -306,7 +373,31 @@ class _ViewportPainter extends CustomPainter {
       12 / scene.scale,
       true,
     );
-    paintDocument(canvas, doc, cache, live: scene.live);
+    paintDocument(
+      canvas,
+      doc,
+      cache,
+      live: scene.live,
+      decorationPreview: scene.decorationPreview,
+    );
+    for (final original in doc.decorations.where((d) => d.id == selected)) {
+      final item = scene.decorationPreview ?? original;
+      canvas.save();
+      canvas.translate(item.center.dx, item.center.dy);
+      canvas.rotate(item.rotation);
+      canvas.drawRect(
+        Rect.fromCenter(
+          center: Offset.zero,
+          width: item.size * 1.1,
+          height: item.size * 1.1,
+        ),
+        Paint()
+          ..color = const Color(0xFF8050EF)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2 / scene.scale,
+      );
+      canvas.restore();
+    }
     canvas.restore();
   }
 

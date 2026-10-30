@@ -46,13 +46,16 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    expect(find.text('3094 designs · choose your favourite'), findsOneWidget);
+    await tester.tap(find.text('Studio collection · 1,094'));
+    await tester.pumpAndSettle();
     expect(find.text('364 designs · choose your favourite'), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'koi');
     await tester.pumpAndSettle();
     expect(find.text('30 designs · choose your favourite'), findsOneWidget);
     await tester.tap(find.text('Intermediate'));
     await tester.pumpAndSettle();
-    expect(find.text('364 designs · choose your favourite'), findsOneWidget);
+    expect(find.text('724 designs · choose your favourite'), findsOneWidget);
     expect(
       tester.widget<TextField>(find.byType(TextField)).controller?.text ?? '',
       '',
@@ -93,6 +96,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(ArtLibraryScreen), findsOneWidget);
       expect(find.text('Botanical Reverie'), findsNothing);
+      await tester.tap(find.text('Studio collection · 1,094'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Advanced'));
       await tester.pumpAndSettle();
       expect(find.text('Botanical Reverie'), findsOneWidget);
@@ -104,7 +109,10 @@ void main() {
       expect(find.text('Your sketches'), findsOneWidget);
       await tester.tap(find.text('Gallery'));
       await tester.pumpAndSettle();
+      await tester.tap(find.text('Studio collection · 1,094'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Advanced'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Detailed'));
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Botanical Reverie'));
@@ -327,7 +335,10 @@ void main() {
       );
       await tester.pumpAndSettle();
       await _capture(tester, boundary, 'colouring-library');
+      await tester.tap(find.text('Studio collection · 1,094'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Advanced'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Detailed'));
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Botanical Reverie').first);

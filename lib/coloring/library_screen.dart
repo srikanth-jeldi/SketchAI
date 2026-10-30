@@ -18,7 +18,31 @@ class ArtLibraryScreen extends StatefulWidget {
 class _ArtLibraryState extends State<ArtLibraryScreen> {
   String? _category;
   int _section = 0;
-  bool _original = false;
+  int _collection = 0;
+  final _scroll = ScrollController();
+  final _search = TextEditingController();
+  int _available = 3094;
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(_loadMore);
+  }
+
+  void _loadMore() {
+    if (_scroll.hasClients &&
+        _scroll.position.extentAfter < 700 &&
+        _visible < _available) {
+      setState(() => _visible += 30);
+    }
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    _search.dispose();
+    super.dispose();
+  }
+
   String _difficulty = 'All levels';
   String _query = '';
   int _visible = 30;
@@ -118,17 +142,25 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final collection = _original
+    final collection = _collection == 0
+        ? allVisibleEntries
+        : _collection == 2
         ? ArtCatalog.entries
         : [kidsEntries, intermediateEntries, advancedEntries][_section];
-    final categories = collection
+    final matching = collection
+        .where(
+          (e) => e.searchTerms.toLowerCase().contains(_query.toLowerCase()),
+        )
+        .toList();
+    final categories = matching
         .where(
           (e) => _difficulty == 'All levels' || e.difficulty == _difficulty,
         )
         .map((e) => e.category)
         .toSet()
         .toList();
-    final entries = collection
+    final availableLevels = matching.map((e) => e.difficulty).toSet();
+    final entries = matching
         .where(
           (entry) =>
               (_difficulty == 'All levels' ||
@@ -137,6 +169,7 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
               entry.searchTerms.toLowerCase().contains(_query.toLowerCase()),
         )
         .toList();
+    _available = entries.length;
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -145,6 +178,7 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
         ),
       ),
       body: CustomScrollView(
+        controller: _scroll,
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
@@ -160,7 +194,7 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
                   Wrap(
                     spacing: 8,
                     children: [
-                      for (final original in [false, true])
+                      for (final group in [0, 1, 2])
                         ChoiceChip(
                           showCheckmark: false,
                           visualDensity: VisualDensity.compact,
@@ -170,24 +204,27 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
                             horizontal: 8,
                           ),
                           label: Text(
-                            original
-                                ? 'Original collection · 2,000'
-                                : 'Studio collection · 1,094',
+                            [
+                              'All designs · 3,094',
+                              'Studio collection · 1,094',
+                              'Original collection · 2,000',
+                            ][group],
                           ),
-                          selected: _original == original,
+                          selected: _collection == group,
                           onSelected: (_) => setState(() {
-                            _original = original;
+                            _collection = group;
                             _section = 0;
                             _category = null;
                             _difficulty = 'All levels';
                             _query = '';
+                            _search.clear();
                             _visible = 30;
                           }),
                         ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  if (!_original)
+                  if (_collection == 1)
                     SegmentedButton<int>(
                       showSelectedIcon: false,
                       style: const ButtonStyle(
@@ -206,6 +243,7 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
                         _category = null;
                         _difficulty = 'All levels';
                         _query = '';
+                        _search.clear();
                         _visible = 30;
                       }),
                     ),
@@ -215,9 +253,9 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
                     children: [
                       for (final level in [
                         'All levels',
-                        'Easy',
-                        'Medium',
-                        'Detailed',
+                        if (availableLevels.contains('Easy')) 'Easy',
+                        if (availableLevels.contains('Medium')) 'Medium',
+                        if (availableLevels.contains('Detailed')) 'Detailed',
                       ])
                         ChoiceChip(
                           showCheckmark: false,
@@ -239,7 +277,8 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
                   ),
                   const SizedBox(height: 12),
                   TextField(
-                    key: ValueKey('$_original/$_section'),
+                    controller: _search,
+                    key: ValueKey('$_collection/$_section'),
                     decoration: const InputDecoration(
                       isDense: true,
                       contentPadding: EdgeInsets.symmetric(vertical: 12),
@@ -248,6 +287,8 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
                     ),
                     onChanged: (value) => setState(() {
                       _query = value;
+                      _category = null;
+                      _difficulty = 'All levels';
                       _visible = 30;
                     }),
                   ),
@@ -272,7 +313,9 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
                           Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: ChoiceChip(
-                              label: Text(category),
+                              label: Text(
+                                '$category (${matching.where((e) => (_difficulty == "All levels" || e.difficulty == _difficulty) && e.category == category).length})',
+                              ),
                               selected: _category == category,
                               onSelected: (_) => setState(() {
                                 _category = category;
@@ -288,16 +331,36 @@ class _ArtLibraryState extends State<ArtLibraryScreen> {
                     '${entries.length} designs · choose your favourite',
                     style: const TextStyle(color: muted, fontSize: 12),
                   ),
+                  Text(
+                    'Showing ${entries.length < _visible ? entries.length : _visible} of ${entries.length} · scroll for more',
+                    style: const TextStyle(color: muted, fontSize: 11),
+                  ),
                   const SizedBox(height: 16),
                 ],
               ),
             ),
           ),
           if (entries.isEmpty)
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.all(32),
-                child: Text('No designs found. Try another category or name.'),
+                child: Column(
+                  children: [
+                    const Text(
+                      'No designs found. Try another category or name.',
+                    ),
+                    TextButton(
+                      onPressed: () => setState(() {
+                        _search.clear();
+                        _query = '';
+                        _difficulty = 'All levels';
+                        _category = null;
+                        _visible = 30;
+                      }),
+                      child: const Text('Clear filters'),
+                    ),
+                  ],
+                ),
               ),
             ),
           SliverPadding(

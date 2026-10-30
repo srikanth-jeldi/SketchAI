@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'document.dart';
+import 'decoration.dart';
 
 class DrawingEditor extends ChangeNotifier {
   SketchDocument _document;
@@ -10,6 +11,45 @@ class DrawingEditor extends ChangeNotifier {
   SketchDocument get document => _document;
   bool get canUndo => _past.isNotEmpty;
   bool get canRedo => _future.isNotEmpty;
+  void putDecoration(CanvasDecoration item) {
+    final exists = document.decorations.any((d) => d.id == item.id);
+    if (!exists && document.decorations.length >= 100) return;
+    _edit(
+      document.copyWith(
+        completed: false,
+        decorations: exists
+            ? document.decorations
+                  .map((d) => d.id == item.id ? item : d)
+                  .toList()
+            : [...document.decorations, item],
+      ),
+    );
+  }
+
+  void removeDecoration(String id) {
+    if (document.decorations.any((d) => d.id == id)) {
+      _edit(
+        document.copyWith(
+          completed: false,
+          decorations: document.decorations.where((d) => d.id != id).toList(),
+        ),
+      );
+    }
+  }
+
+  void orderDecoration(String id, {required bool front}) {
+    final items = document.decorations.toList();
+    final index = items.indexWhere((d) => d.id == id);
+    if (index < 0 ||
+        (front && index == items.length - 1 && !items[index].behindInk) ||
+        (!front && index == 0 && items[index].behindInk)) {
+      return;
+    }
+    final item = items.removeAt(index).copyWith(behindInk: !front);
+    items.insert(front ? items.length : 0, item);
+    _edit(document.copyWith(completed: false, decorations: items));
+  }
+
   void fillRegion(String id, int color) {
     if (document.artworkId == null) return;
     final colors = Map<String, int>.of(document.regionColors);

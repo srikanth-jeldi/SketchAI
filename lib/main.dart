@@ -9,6 +9,7 @@ import 'screens/gallery_screen.dart';
 import 'storage/sketch_store.dart';
 import 'theme.dart';
 import 'coloring/art_catalog.dart';
+import 'drawing/decoration.dart';
 import 'ads/test_ads.dart';
 
 void main() {
@@ -72,6 +73,7 @@ class _BootScreenState extends State<_BootScreen> with WidgetsBindingObserver {
 
   @override
   void didHaveMemoryPressure() {
+    DecorationPhotos.trim();
     PaintingBinding.instance.imageCache.clear();
     clearUnusedArtwork();
     unawaited(
@@ -88,6 +90,7 @@ class _BootScreenState extends State<_BootScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
       PaintingBinding.instance.imageCache.clear();
+      DecorationPhotos.trim();
       clearUnusedArtwork();
     }
   }

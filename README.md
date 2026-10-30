@@ -1,5 +1,7 @@
 # Sketluma — Sketch & Paint
 
+**0.8.0+15 Creative Studio:** customizable stickers, editable text, local photo import/crop/frames and reusable My stickers. The gallery now starts with all 3,094 unique entries and loads more automatically while scrolling. Intermediate includes adult-friendly Easy pages, and categories show real matching counts. [Release scope and validation](docs/RELEASE_0_8_0.md).
+
 **0.7.0+14 catalogue update:** 3,094 offline colouring pages across Studio (Kids, Intermediate and Advanced) and the complete 2,000-page Original collection, including 1,080 procedural vector editions from 36 scene compositions. Includes named palettes, colour references and 2K vector export. These are generated geometry variations, not 1,080 bespoke illustrations. [Current release notes](docs/RELEASE_0_7_0.md).
 
 **0.6.5+13 release candidate:** company package `com.epitomehub.sketluma`, with Sketluma / Powered by EpitomeHub® branding. Includes the reproduced Android startup-crash fix, verified Sketluma AdMob IDs, consent-gated ad requests and in-app privacy links. The store AAB enables real Android ad units; the separate test APK uses demo units. AdMob approval and physical-device acceptance remain pending. See [release notes](docs/RELEASE_0_6_5.md) and [package migration notes](docs/RELEASE_0_6_2.md).

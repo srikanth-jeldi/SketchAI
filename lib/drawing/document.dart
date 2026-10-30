@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'decoration.dart';
+
 import '../coloring/art_catalog.dart' show ArtCatalog;
 
 enum BrushKind { pen, pencil, marker, eraser }
@@ -115,6 +117,7 @@ class SketchDocument {
   final String? artworkId;
   final Map<String, int> regionColors;
   final bool completed;
+  final List<CanvasDecoration> decorations;
   SketchDocument({
     required this.id,
     required this.title,
@@ -126,9 +129,15 @@ class SketchDocument {
     this.artworkId,
     Map<String, int> regionColors = const {},
     this.completed = false,
+    List<CanvasDecoration> decorations = const [],
   }) : layers = List.unmodifiable(layers),
+       decorations = List.unmodifiable(decorations),
        regionColors = Map.unmodifiable(regionColors) {
-    if (width < 1 ||
+    if (decorations.where((d) => d.imageData.isNotEmpty).length > 6 ||
+        decorations.fold<int>(0, (n, d) => n + d.imageData.length) > 8000000 ||
+        decorations.length > 100 ||
+        decorations.map((d) => d.id).toSet().length != decorations.length ||
+        width < 1 ||
         height < 1 ||
         width > 4096 ||
         height > 4096 ||
@@ -172,6 +181,7 @@ class SketchDocument {
     DateTime? modified,
     Map<String, int>? regionColors,
     bool? completed,
+    List<CanvasDecoration>? decorations,
   }) => SketchDocument(
     id: id,
     title: title ?? this.title,
@@ -183,9 +193,16 @@ class SketchDocument {
     artworkId: artworkId,
     regionColors: regionColors ?? this.regionColors,
     completed: completed ?? this.completed,
+    decorations: decorations ?? this.decorations,
   );
   Map<String, dynamic> toJson() => {
-    'version': artworkId == null ? 1 : 2,
+    'version': decorations.isNotEmpty
+        ? 3
+        : artworkId == null
+        ? 1
+        : 2,
+    if (decorations.isNotEmpty)
+      'decorations': decorations.map((d) => d.toJson()).toList(),
     if (artworkId != null) 'artworkId': artworkId,
     if (artworkId != null) 'regionColors': regionColors,
     if (artworkId != null || completed) 'completed': completed,
@@ -198,7 +215,7 @@ class SketchDocument {
     'layers': layers.map((l) => l.toJson()).toList(),
   };
   factory SketchDocument.fromJson(Map<String, dynamic> json) {
-    if (json['version'] != 1 && json['version'] != 2) {
+    if (json['version'] != 1 && json['version'] != 2 && json['version'] != 3) {
       throw const FormatException('Unsupported sketch version');
     }
     final id = json['id'] as String;
@@ -220,6 +237,9 @@ class SketchDocument {
         (key, value) => MapEntry(key, value as int),
       ),
       completed: json['completed'] as bool? ?? false,
+      decorations: (json['decorations'] as List? ?? [])
+          .map((d) => CanvasDecoration.fromJson(d as Map<String, dynamic>))
+          .toList(),
     );
   }
 }

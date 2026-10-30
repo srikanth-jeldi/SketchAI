@@ -1,6 +1,6 @@
-# Collections — 0.7.0+14
+# Collections — 0.8.0+15
 
-The current visible catalogue has 3,094 unique pages: Studio has Kids 364, Intermediate 364 and Advanced 366, and Original collection restores all 2,000 legacy pages. This includes 1,080 new procedural vector editions and 14 existing raster illustrations. Sections start on All levels. See [current content scope](RELEASE_0_7_0.md).
+The default All designs view exposes 3,094 unique pages with automatic scroll loading. Studio has Kids 364, Intermediate 724 (including shared easy pages suitable for adults), and Advanced 366. Its unique total remains 1,094; Original collection provides all 2,000 legacy pages. All designs deduplicates shared pages by ID. Categories and available difficulty filters derive from matching content and show counts. See [current content scope](RELEASE_0_8_0.md).
 
 ## Historical 0.4.0+6 behaviour
 

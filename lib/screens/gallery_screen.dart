@@ -210,6 +210,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
           artworkId: doc.artworkId,
           regionColors: doc.regionColors,
           completed: doc.completed,
+          decorations: doc.decorations,
         );
         await widget.store.save(copy);
         await widget.store.saveThumbnail(
@@ -330,7 +331,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                                     onPressed: () => showAboutDialog(
                                       context: context,
                                       applicationName: 'Sketluma',
-                                      applicationVersion: '0.7.0 · Sketluma',
+                                      applicationVersion: '0.8.0 · Sketluma',
                                       applicationLegalese:
                                           'Powered by EpitomeHub®',
                                       applicationIcon: const BrandMark(

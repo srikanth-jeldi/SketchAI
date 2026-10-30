@@ -17,11 +17,14 @@ String geometry(ArtDesign art) => [
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   test('1,094 gallery pages include 1,080 stable geometry editions', () {
-    final gallery = [
-      ...kidsEntries,
-      ...intermediateEntries,
-      ...advancedEntries,
-    ];
+    final gallery = {
+      for (final e in [
+        ...kidsEntries,
+        ...intermediateEntries,
+        ...advancedEntries,
+      ])
+        e.id: e,
+    }.values.toList();
     expect(gallery.length, 1094);
     expect(gallery.map((e) => e.id).toSet().length, 1094);
     expect(
@@ -32,7 +35,26 @@ void main() {
       3094,
     );
     expect(kidsEntries.length, 364);
-    expect(intermediateEntries.length, 364);
+    expect(intermediateEntries.length, 724);
+    expect(allVisibleEntries.length, 3094);
+    expect(allVisibleEntries.map((e) => e.id).toSet().length, 3094);
+    for (final category in [
+      'Botanical',
+      'Wildlife',
+      'Travel',
+      'Gardens',
+      'Still life',
+    ]) {
+      for (final level in ['Easy', 'Medium', 'Detailed']) {
+        expect(
+          atelierEntries.where(
+            (e) => e.category == category && e.difficulty == level,
+          ),
+          isNotEmpty,
+          reason: '$category / $level',
+        );
+      }
+    }
     expect(advancedEntries.length, 366);
     final fingerprints = <String>{};
     final counts = [0, 0, 0];

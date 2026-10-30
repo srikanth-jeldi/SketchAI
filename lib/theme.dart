@@ -105,6 +105,8 @@ Future<String?> requestName(
   BuildContext context,
   String initial, {
   String heading = 'Name your sketch',
+  String fieldLabel = 'Sketch name',
+  int maxLength = 60,
 }) async {
   final controller = TextEditingController(text: initial);
   final value = await showDialog<String>(
@@ -114,9 +116,9 @@ Future<String?> requestName(
       content: TextField(
         controller: controller,
         autofocus: true,
-        maxLength: 60,
+        maxLength: maxLength,
         textCapitalization: TextCapitalization.sentences,
-        decoration: const InputDecoration(labelText: 'Sketch name'),
+        decoration: InputDecoration(labelText: fieldLabel),
         onSubmitted: (value) {
           if (value.trim().isNotEmpty) Navigator.pop(context, value.trim());
         },

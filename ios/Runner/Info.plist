@@ -68,5 +68,7 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Choose a photo to draw on or turn into a custom sticker. Photos stay in your saved artwork on this device.</string>
 </dict>
 </plist>

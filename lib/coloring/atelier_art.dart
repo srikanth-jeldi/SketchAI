@@ -5,11 +5,11 @@ part of 'art_catalog.dart';
 const atelierCount = 1080;
 const atelierCategories = [
   'Botanical',
-  'Bird gardens',
+  'Wildlife',
   'Butterflies',
-  'Cottages',
+  'Gardens',
   'Landscapes',
-  'Coastal',
+  'Travel',
   'Water gardens',
   'Ocean',
   'Still life',
@@ -84,6 +84,7 @@ List<ArtEntry> atelierForLevel(int level) => [
 ];
 final intermediateEntries = List<ArtEntry>.unmodifiable([
   ...adultEntries.where((e) => !e.premium && !e.atelier),
+  ...atelierForLevel(0),
   ...atelierForLevel(1),
 ]);
 final advancedEntries = List<ArtEntry>.unmodifiable([

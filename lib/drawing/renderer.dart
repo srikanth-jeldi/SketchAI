@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import 'document.dart';
+import 'decoration.dart';
 import '../coloring/art_catalog.dart';
 
 void paintStroke(Canvas canvas, InkStroke stroke) {
@@ -171,6 +172,7 @@ void paintDocument(
   DrawingRenderCache cache, {
   InkStroke? live,
   bool paper = true,
+  CanvasDecoration? decorationPreview,
 }) {
   final bounds = Rect.fromLTWH(
     0,
@@ -187,6 +189,12 @@ void paintDocument(
     canvas.scale(doc.width / 1000, doc.height / 1000);
     canvas.drawPicture(cache.artPicture(doc));
     canvas.restore();
+  }
+  for (final item in doc.decorations.where((d) => d.behindInk)) {
+    paintDecoration(
+      canvas,
+      decorationPreview?.id == item.id ? decorationPreview! : item,
+    );
   }
   for (final layer in doc.layers) {
     if (!layer.visible || layer.opacity <= 0) continue;
@@ -211,6 +219,12 @@ void paintDocument(
     canvas.drawPicture(cache.artPicture(doc, outlines: true));
     canvas.restore();
   }
+  for (final item in doc.decorations.where((d) => !d.behindInk)) {
+    paintDecoration(
+      canvas,
+      decorationPreview?.id == item.id ? decorationPreview! : item,
+    );
+  }
   canvas.restore();
 }
 
@@ -220,6 +234,7 @@ Future<Uint8List> renderPng(
   int? maxSide,
 }) async {
   await ensureArtworkLoaded(doc.artworkId);
+  await DecorationPhotos.prepare(doc.decorations);
   final scale = maxSide == null
       ? 1.0
       : math.min(1.0, maxSide / math.max(doc.width, doc.height));

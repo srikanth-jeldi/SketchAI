@@ -164,7 +164,10 @@ void main() {
     await tester.tap(find.text('Gallery'));
     await settle();
     await capture('screen-02-kids');
+    await tester.tap(find.text('Studio collection · 1,094'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Advanced'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Detailed'));
     await settle();
     await capture('screen-03-adults');
