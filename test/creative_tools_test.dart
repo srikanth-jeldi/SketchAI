@@ -370,7 +370,7 @@ void main() {
         await Directory('output/creative-qa').create(recursive: true);
         final recorder = ui.PictureRecorder(), canvas = Canvas(recorder);
         canvas.drawColor(const Color(0xFFF9F6F0), BlendMode.src);
-        for (var i = 0; i < stickerNames.length; i++) {
+        for (var i = 0; i < 24; i++) {
           final x = (i % 6) * 200.0, y = (i ~/ 6) * 220.0;
           canvas.drawRRect(
             RRect.fromRectAndRadius(

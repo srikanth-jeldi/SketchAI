@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../drawing/document.dart';
+import 'sticker_picker.dart';
 import '../drawing/decoration.dart';
 import '../drawing/drawing_canvas.dart';
 import '../drawing/editor.dart';
@@ -334,7 +335,7 @@ class _StudioScreenState extends State<StudioScreen>
     return null;
   }
 
-  void _insertObject({int sticker = 0, String text = ''}) {
+  void _insertObject({int sticker = 0, String text = '', Color? color}) {
     if (_editor.document.decorations.length >= 100) {
       _snack('This canvas has 100 objects. Remove one to add another.');
       return;
@@ -346,7 +347,7 @@ class _StudioScreenState extends State<StudioScreen>
       text: text,
       center: Offset(doc.width / 2, doc.height / 2),
       size: (doc.width * .3).clamp(20.0, 4096.0),
-      color: _color.toARGB32(),
+      color: (color ?? _color).toARGB32(),
     );
     _editor.putDecoration(item);
     setState(() {
@@ -370,60 +371,20 @@ class _StudioScreenState extends State<StudioScreen>
 
   void _stickers() => showModalBottomSheet<void>(
     context: context,
+    isScrollControlled: true,
     showDragHandle: true,
-    builder: (sheet) => SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            'Make it yours',
-            style: TextStyle(fontFamily: 'DMSerif', fontSize: 26),
-          ),
-          const Text('Original stickers · every colour is yours'),
-          TextButton.icon(
-            onPressed: () {
-              Navigator.pop(sheet);
-              _myStickers();
-            },
-            icon: const Icon(Icons.bookmark_border),
-            label: const Text('My stickers'),
-          ),
-          Flexible(
-            child: GridView.builder(
-              shrinkWrap: true,
-              padding: const EdgeInsets.all(16),
-              itemCount: stickerNames.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                childAspectRatio: .9,
-              ),
-              itemBuilder: (_, i) => InkWell(
-                onTap: () {
-                  Navigator.pop(sheet);
-                  _insertObject(sticker: i);
-                },
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: CustomPaint(
-                        painter: StickerPreview(
-                          CanvasDecoration(
-                            id: 'preview',
-                            sticker: i,
-                            center: Offset.zero,
-                            color: _color.toARGB32(),
-                          ),
-                        ),
-                        child: const SizedBox.expand(),
-                      ),
-                    ),
-                    Text(stickerNames[i], style: const TextStyle(fontSize: 11)),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
+    builder: (sheet) => SizedBox(
+      height: MediaQuery.sizeOf(sheet).height * .88,
+      child: StickerPicker(
+        initialColor: _color,
+        onSelect: (id, color) {
+          Navigator.pop(sheet);
+          _insertObject(sticker: id, color: color);
+        },
+        onMyStickers: () {
+          Navigator.pop(sheet);
+          _myStickers();
+        },
       ),
     ),
   );

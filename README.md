@@ -1,5 +1,7 @@
 # Sketluma — Sketch & Paint
 
+**0.9.0+16 Sticker Library:** 1,104 offline sticker entries (60 new vector motifs × 18 compositions, plus 24 essentials), searchable by topic/name/style with preview colours. Includes all 0.8 creative tools and all 3,094 colouring pages. [Content scope and validation](docs/RELEASE_0_9_0.md).
+
 **0.8.0+15 Creative Studio:** customizable stickers, editable text, local photo import/crop/frames and reusable My stickers. The gallery now starts with all 3,094 unique entries and loads more automatically while scrolling. Intermediate includes adult-friendly Easy pages, and categories show real matching counts. [Release scope and validation](docs/RELEASE_0_8_0.md).
 
 **0.7.0+14 catalogue update:** 3,094 offline colouring pages across Studio (Kids, Intermediate and Advanced) and the complete 2,000-page Original collection, including 1,080 procedural vector editions from 36 scene compositions. Includes named palettes, colour references and 2K vector export. These are generated geometry variations, not 1,080 bespoke illustrations. [Current release notes](docs/RELEASE_0_7_0.md).

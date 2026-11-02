@@ -5,7 +5,9 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
-const stickerNames = [
+import 'sticker_library.dart';
+
+const _essentialStickerNames = [
   'Bloom',
   'Heart',
   'Star',
@@ -31,6 +33,10 @@ const stickerNames = [
   'Coffee',
   'Bow',
 ];
+final stickerNames = List<String>.unmodifiable([
+  ..._essentialStickerNames,
+  ...List.generate(expandedStickerCount, expandedStickerName),
+]);
 
 /// Original, resolution-independent stickers and editable text. Coordinates are
 /// document pixels; objects stay editable after saving and are exported without handles.
@@ -283,6 +289,8 @@ void paintDecoration(Canvas canvas, CanvasDecoration item) {
     painter.paint(canvas, Offset(-painter.width / 2, -painter.height / 2));
     painter.dispose();
     canvas.restore();
+  } else if (item.sticker >= 24) {
+    paintLibrarySticker(canvas, item.sticker - 24, fill.color);
   } else {
     switch (item.sticker) {
       case 0:
@@ -748,14 +756,14 @@ class StickerPreview extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty) return;
+    canvas.save();
+    canvas.translate(size.width / 2, size.height / 2);
+    canvas.scale(math.min(size.width, size.height) * .85 / 240);
     paintDecoration(
       canvas,
-      item.copyWith(
-        center: Offset(size.width / 2, size.height / 2),
-        size: math.min(size.width, size.height) * .85,
-        rotation: item.rotation,
-      ),
+      item.copyWith(center: Offset.zero, size: 240, rotation: item.rotation),
     );
+    canvas.restore();
   }
 
   @override
